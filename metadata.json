@@ -1,0 +1,5 @@
+{
+  "name": "CustomerSuccess",
+  "description": "An anonymous review platform for pharmacy deliveries featuring secure SMS verification, detailed product/delivery metrics, and admin analytics.",
+  "requestFramePermissions": []
+}
