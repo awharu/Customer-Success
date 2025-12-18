@@ -51,34 +51,77 @@ export const smsService = {
 
     try {
       /**
-       * Using GET as the primary method for 'no-cors' requests. 
-       * GET is the most robust fire-and-forget method for browser-based dispatch.
+       * The 'no-cors' mode has been removed to allow reading the API response.
+       * This requires the hero.co.nz API to support CORS. If it doesn't, this
+       * request may fail due to browser security policies.
        */
       const url = `${HERO_API_ENDPOINT}?${params.toString()}`;
       
-      await fetch(url, {
+      const response = await fetch(url, {
         method: 'GET',
-        mode: 'no-cors',
         cache: 'no-cache'
       });
 
-      console.log(`[SUCCESS] Request accepted by browser network stack.`);
-      console.groupEnd();
+      if (!response.ok) {
+        throw new Error(`API request failed with HTTP status ${response.status}`);
+      }
+      
+      const responseText = await response.text();
+      const resultCode = parseInt(responseText.trim(), 10);
 
-      return { 
-        success: true, 
-        message: "SMS handed off to gateway. Note: Browser security limits direct delivery confirmation; check the Hero portal for real-time logs.",
-        link: reviewLink,
-        debugInfo: `Log ID: ${logId} | Dest: ${normalizedPhone}`
-      };
+      console.log(`[SUCCESS] API Response Code: ${resultCode}`);
+      console.groupEnd();
+      
+      switch (resultCode) {
+        case 0:
+          return {
+            success: true,
+            message: "SMS successfully dispatched to the recipient.",
+            link: reviewLink,
+            debugInfo: `Log ID: ${logId} | Dest: ${normalizedPhone}`
+          };
+        case 2:
+          return {
+            success: false,
+            message: "SMS failed: Authentication error. Please check API credentials.",
+            link: reviewLink
+          };
+        case 3:
+          return {
+            success: false,
+            message: "SMS failed: Invalid destination number. Please check the phone number format.",
+            link: reviewLink
+          };
+        case 4:
+          return {
+            success: false,
+            message: "SMS failed: Invalid message content. The text may be malformed.",
+            link: reviewLink
+          };
+        default:
+          return {
+            success: false,
+            message: `SMS failed: Unknown API response code (${resultCode}). Check the gateway portal.`,
+            link: reviewLink
+          };
+      }
 
     } catch (error: any) {
       console.error(`[CRITICAL] Transport failure:`, error);
       console.groupEnd();
+
+      // Provide a more specific message if the error looks like a CORS issue.
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return { 
+          success: false, 
+          message: 'Network error: Could not connect to the SMS gateway. This may be a network issue or a CORS policy violation by the API.',
+          link: reviewLink
+        };
+      }
       
       return { 
         success: false, 
-        message: `Network error: ${error?.message || 'Check your internet connection.'}`,
+        message: `System error: ${error?.message || 'Check your internet connection.'}`,
         link: reviewLink
       };
     }

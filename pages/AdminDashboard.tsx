@@ -4,7 +4,7 @@ import { db } from '../services/db';
 import { smsService } from '../services/sms';
 import { aiService } from '../services/ai';
 import { AccessCode, Review, ReviewStatus } from '../types';
-import { Send, Smartphone, FileText, Sparkles, RefreshCw, Copy, ExternalLink, CheckCircle, Trash2, AlertCircle, Info } from 'lucide-react';
+import { Send, Smartphone, FileText, Sparkles, RefreshCw, Copy, ExternalLink, CheckCircle, Trash2, AlertCircle, Info, BrainCircuit } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -21,6 +21,7 @@ const AdminDashboard: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [aiSummary, setAiSummary] = useState<string>('');
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [useThinkingMode, setUseThinkingMode] = useState(false);
 
   const refreshData = () => {
     try {
@@ -85,7 +86,7 @@ const AdminDashboard: React.FC = () => {
   const generateSummary = async () => {
     setIsSummarizing(true);
     try {
-      const summary = await aiService.summarizeReviews(reviews);
+      const summary = await aiService.summarizeReviews(reviews, useThinkingMode);
       setAiSummary(summary);
     } catch (error) {
       console.error("Failed to generate AI summary:", error);
@@ -293,7 +294,7 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-8">
             <div className="bg-indigo-900 p-8 rounded-3xl shadow-xl border border-indigo-800 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <Sparkles size={120} />
+                  <BrainCircuit size={120} />
                 </div>
                 <div className="relative z-10">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -301,15 +302,31 @@ const AdminDashboard: React.FC = () => {
                           <div className="bg-indigo-500/30 p-2 rounded-xl">
                             <Sparkles className="text-indigo-200" size={24} />
                           </div>
-                          <h3 className="text-xl font-bold">AI Feedback Analyst</h3>
+                          <div>
+                            <h3 className="text-xl font-bold">AI Feedback Analyst</h3>
+                            <p className="text-xs text-indigo-300">Generates insights from customer comments.</p>
+                          </div>
                       </div>
-                      <button 
-                          onClick={generateSummary}
-                          disabled={isSummarizing || reviews.length === 0}
-                          className="bg-white text-indigo-900 px-6 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 disabled:opacity-30 transition-all shadow-lg flex items-center gap-2"
-                      >
-                          {isSummarizing ? <><RefreshCw className="animate-spin" size={16}/> Analyzing...</> : 'Summarize Themes'}
-                      </button>
+                      <div className="flex items-center gap-4 flex-wrap justify-end">
+                        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setUseThinkingMode(!useThinkingMode)}>
+                            <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ease-in-out ${ useThinkingMode ? 'bg-indigo-400' : 'bg-white/20' }`}>
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ease-in-out ${ useThinkingMode ? 'translate-x-6' : 'translate-x-1' }`}/>
+                            </div>
+                            <div>
+                                <label className="text-sm font-bold text-white cursor-pointer select-none">
+                                    Deep Analysis
+                                </label>
+                                <p className="text-[11px] text-indigo-300 group-hover:text-indigo-100 transition-colors">Slower, more thorough results.</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={generateSummary}
+                            disabled={isSummarizing || reviews.length === 0}
+                            className="bg-white text-indigo-900 px-6 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 disabled:opacity-30 transition-all shadow-lg flex items-center gap-2"
+                        >
+                            {isSummarizing ? <><RefreshCw className="animate-spin" size={16}/> Analyzing...</> : 'Summarize Themes'}
+                        </button>
+                      </div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 min-h-[100px] text-indigo-50 text-base leading-relaxed whitespace-pre-wrap font-medium">
                       {aiSummary || (reviews.length === 0 ? "Wait for your first review to use AI analytics." : "Generate a report to see key themes across all customer comments.")}

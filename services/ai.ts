@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Review } from '../types';
 
 export const aiService = {
-  summarizeReviews: async (reviews: Review[]): Promise<string> => {
+  summarizeReviews: async (reviews: Review[], useThinkingMode: boolean = false): Promise<string> => {
     // Basic validation for the prompt input
     if (reviews.length === 0) {
       return "No reviews available to summarize.";
@@ -22,14 +22,20 @@ export const aiService = {
       // We assume process.env.API_KEY is pre-configured and valid.
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
+      const model = useThinkingMode ? 'gemini-3-pro-preview' : 'gemini-3-flash-preview';
+      const config = useThinkingMode 
+        ? { thinkingConfig: { thinkingBudget: 32768 } } 
+        : {};
+
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model,
         contents: `You are an analytics assistant for a pharmacy delivery service. 
         Analyze the following customer feedback comments and provide a concise summary of themes. 
         Focus on delivery speed, product quality, and customer service.
         
         Feedback:
         ${comments}`,
+        config,
       });
 
       // Directly access the .text property of the response as per the SDK guidelines.

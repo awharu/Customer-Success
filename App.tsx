@@ -1,6 +1,3 @@
-
-
-
 import React, { ReactNode, ErrorInfo } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import PublicHome from './pages/PublicHome';
@@ -21,17 +18,13 @@ interface ErrorBoundaryState {
  * Standardized to React 18 patterns.
  */
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Reverted to a standard constructor for state initialization.
-  // The class property syntax `state = {}` can sometimes lead to typing issues
-  // with `this.props` in certain build configurations. Explicitly calling `super(props)`
-  // in a constructor is the most reliable way to ensure the component's `props` and `state` are correctly typed and initialized.
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-    };
-  }
+  // FIX: Switched to class property syntax for state initialization.
+  // This is a more concise and modern approach that correctly declares the state property on the component instance,
+  // resolving issues where `this.state` and `this.props` were not being recognized.
+  state: ErrorBoundaryState = {
+    hasError: false,
+    error: null,
+  };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
