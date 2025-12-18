@@ -30,6 +30,12 @@ export const db = {
     return data ? JSON.parse(data) : [];
   },
 
+  deleteCode: (code: string) => {
+    const codes = db.getCodes();
+    const filtered = codes.filter(c => c.code !== code);
+    localStorage.setItem(STORAGE_KEYS.CODES, JSON.stringify(filtered));
+  },
+
   validateCode: (code: string): { valid: boolean; used: boolean } => {
     const codes = db.getCodes();
     const found = codes.find((c) => c.code === code);

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/db';
 import StarRating from '../components/StarRating';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 const ReviewPage: React.FC = () => {
   const { code } = useParams<{ code: string }>();
@@ -38,7 +38,7 @@ const ReviewPage: React.FC = () => {
     if (!code || !isValid || isUsed) return;
     setSubmitting(true);
     
-    // Simulate API delay
+    // Simulate API delay for better UX
     setTimeout(() => {
       db.addReview({
         code,
@@ -48,24 +48,33 @@ const ReviewPage: React.FC = () => {
       });
       setSubmitting(false);
       setIsUsed(true); // Switch to success view
-    }, 1000);
+    }, 800);
   };
 
   const isFormComplete = 
-    Object.values(productRatings).every((v) => (v as number) > 0) &&
-    Object.values(deliveryRatings).every((v) => (v as number) > 0);
+    (Object.values(productRatings) as number[]).every(v => v > 0) &&
+    (Object.values(deliveryRatings) as number[]).every(v => v > 0);
 
   // Loading State
-  if (isValid === null) return <div className="min-h-screen flex items-center justify-center bg-slate-50">Validating code...</div>;
+  if (isValid === null) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="animate-spin text-teal-600 mb-2" size={32} />
+        <span className="text-slate-500 font-medium">Verifying code...</span>
+      </div>
+    );
+  }
 
   // Invalid Code View
   if (!isValid) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
         <XCircle className="text-red-500 mb-4" size={64} />
-        <h1 className="text-2xl font-bold text-slate-800">Invalid Code</h1>
-        <p className="text-slate-600 mt-2">The review code provided is incorrect or does not exist.</p>
-        <button onClick={() => navigate('/')} className="mt-6 text-teal-600 hover:underline">Return Home</button>
+        <h1 className="text-2xl font-bold text-slate-800">Access Denied</h1>
+        <p className="text-slate-600 mt-2 max-w-xs">The review link is invalid or has expired. Please contact support if you believe this is an error.</p>
+        <button onClick={() => navigate('/')} className="mt-8 bg-white border border-slate-200 px-6 py-2 rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition-colors shadow-sm">
+          Return Home
+        </button>
       </div>
     );
   }
@@ -73,12 +82,14 @@ const ReviewPage: React.FC = () => {
   // Used Code / Success View
   if (isUsed) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
-        <CheckCircle className="text-teal-500 mb-4" size={64} />
-        <h1 className="text-2xl font-bold text-slate-800">Thank You!</h1>
-        <p className="text-slate-600 mt-2">Your feedback has been submitted successfully.</p>
-        <button onClick={() => navigate('/')} className="mt-6 bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700">
-          View Live Metrics
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
+        <div className="bg-teal-100 p-4 rounded-full mb-6">
+          <CheckCircle className="text-teal-600" size={48} />
+        </div>
+        <h1 className="text-3xl font-bold text-slate-800">Feedback Received</h1>
+        <p className="text-slate-600 mt-2">Thank you for helping us improve our pharmacy services.</p>
+        <button onClick={() => navigate('/')} className="mt-8 bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20">
+          View Quality Metrics
         </button>
       </div>
     );
@@ -86,18 +97,19 @@ const ReviewPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="bg-teal-600 p-6 text-white">
+      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
+        <div className="bg-teal-600 p-8 text-white">
           <h1 className="text-2xl font-bold">Delivery Review</h1>
-          <p className="opacity-90 mt-1">Share your experience anonymously.</p>
+          <p className="opacity-90 mt-1">Your feedback is 100% anonymous and secure.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8">
-          
           {/* Section 1: Product */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Product Evaluation</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-10">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span className="w-8 h-px bg-slate-200"></span> Product Evaluation
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
               <StarRating 
                 label="Quality" 
                 value={productRatings.quality} 
@@ -122,9 +134,11 @@ const ReviewPage: React.FC = () => {
           </div>
 
           {/* Section 2: Delivery */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Delivery Service</h2>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-10">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span className="w-8 h-px bg-slate-200"></span> Delivery Service
+            </h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
               <StarRating 
                 label="Speed" 
                 value={deliveryRatings.speed} 
@@ -144,12 +158,13 @@ const ReviewPage: React.FC = () => {
           </div>
 
           {/* Section 3: Comments */}
-          <div className="mb-8">
-             <h2 className="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Additional Comments</h2>
+          <div className="mb-10">
+             <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+               <span className="w-8 h-px bg-slate-200"></span> Additional Comments
+             </h2>
              <textarea 
-               className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-               rows={4}
-               placeholder="Optional comments about your experience..."
+               className="w-full border border-slate-200 rounded-2xl p-4 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-all placeholder:text-slate-300 min-h-[120px]"
+               placeholder="Tell us more about your experience (optional)..."
                value={comment}
                onChange={(e) => setComment(e.target.value)}
              />
@@ -158,19 +173,22 @@ const ReviewPage: React.FC = () => {
           <button 
             type="submit" 
             disabled={!isFormComplete || submitting}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition-all ${
+            className={`w-full py-4 rounded-2xl font-bold text-white transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 ${
               !isFormComplete || submitting 
-                ? 'bg-slate-300 cursor-not-allowed' 
-                : 'bg-teal-600 hover:bg-teal-700 shadow-lg hover:shadow-xl'
+                ? 'bg-slate-200 cursor-not-allowed text-slate-400' 
+                : 'bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/20'
             }`}
           >
-            {submitting ? 'Submitting...' : 'Submit Anonymous Review'}
+            {submitting ? (
+              <><Loader2 className="animate-spin" size={20} /> Processing...</>
+            ) : (
+              'Submit Anonymous Review'
+            )}
           </button>
           
-          {!isFormComplete && (
-            <p className="text-xs text-center text-red-400 mt-2">Please rate all categories to continue.</p>
+          {!isFormComplete && !submitting && (
+            <p className="text-xs text-center text-slate-400 mt-4">Please provide a rating for all categories to submit.</p>
           )}
-
         </form>
       </div>
     </div>

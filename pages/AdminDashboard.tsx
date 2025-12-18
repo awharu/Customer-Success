@@ -4,7 +4,7 @@ import { db } from '../services/db';
 import { smsService } from '../services/sms';
 import { aiService } from '../services/ai';
 import { AccessCode, Review, ReviewStatus } from '../types';
-import { Send, Smartphone, FileText, Sparkles, RefreshCw, Copy, ExternalLink, CheckCircle, Trash2, AlertCircle } from 'lucide-react';
+import { Send, Smartphone, FileText, Sparkles, RefreshCw, Copy, ExternalLink, CheckCircle, Trash2, AlertCircle, Info } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,7 +75,13 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Improved summarize function with error handling and feedback
+  const handleDeleteCode = (code: string) => {
+    if (window.confirm(`Are you sure you want to delete the invite code ${code}?`)) {
+      db.deleteCode(code);
+      refreshData();
+    }
+  };
+
   const generateSummary = async () => {
     setIsSummarizing(true);
     try {
@@ -164,13 +170,14 @@ const AdminDashboard: React.FC = () => {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">NZ format preferred (e.g. 021...)</p>
                 </div>
                 <button
                   type="submit"
                   disabled={isSending || !phoneNumber}
                   className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
                 >
-                  {isSending ? 'Connecting...' : <><Send size={18} /> Send via SMS</>}
+                  {isSending ? 'Sending...' : <><Send size={18} /> Dispatch via Gateway</>}
                 </button>
               </form>
 
@@ -186,7 +193,7 @@ const AdminDashboard: React.FC = () => {
                     )}
                     <div>
                       <p className={`text-sm font-bold ${smsSuccess ? 'text-teal-900' : 'text-red-900'}`}>
-                        {smsSuccess ? 'Dispatch Triggered' : 'Dispatch Failed'}
+                        {smsSuccess ? 'Request Handed Off' : 'Dispatch Failed'}
                       </p>
                       <p className={`text-xs mt-0.5 leading-tight ${smsSuccess ? 'text-teal-700' : 'text-red-700'}`}>
                         {smsStatus}
@@ -194,10 +201,19 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                   
+                  {smsSuccess && (
+                    <div className="flex items-start gap-2 bg-white/50 p-2 rounded border border-teal-100 mt-2 mb-4">
+                      <Info size={14} className="text-teal-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-teal-700 leading-tight">
+                        Standard browser security prevents delivery confirmation. If the customer doesn't receive it, use the link below manually.
+                      </p>
+                    </div>
+                  )}
+                  
                   {lastLink && (
                     <>
-                      <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-inner mt-4">
-                        <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Direct Link (Fallback)</p>
+                      <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-inner">
+                        <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Backup Review Link</p>
                         <p className="text-xs text-slate-600 font-mono break-all leading-tight">{lastLink}</p>
                       </div>
                       <div className="flex gap-2 mt-4">
@@ -234,12 +250,13 @@ const AdminDashboard: React.FC = () => {
                       <th className="p-4">Code</th>
                       <th className="p-4">Destination</th>
                       <th className="p-4">Status</th>
-                      <th className="p-4 text-right">Created</th>
+                      <th className="p-4">Created</th>
+                      <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {codes.length === 0 ? (
-                        <tr><td colSpan={4} className="p-8 text-center text-slate-400 italic">No invites generated yet.</td></tr>
+                        <tr><td colSpan={5} className="p-8 text-center text-slate-400 italic">No invites generated yet.</td></tr>
                     ) : (
                         codes.map((c) => (
                         <tr key={c.code} className="hover:bg-slate-50 transition-colors group">
@@ -252,7 +269,16 @@ const AdminDashboard: React.FC = () => {
                                 {c.status}
                             </span>
                             </td>
-                            <td className="p-4 text-slate-400 text-right text-xs">{new Date(c.createdAt).toLocaleDateString()}</td>
+                            <td className="p-4 text-slate-400 text-xs">{new Date(c.createdAt).toLocaleDateString()}</td>
+                            <td className="p-4 text-right">
+                              <button 
+                                onClick={() => handleDeleteCode(c.code)}
+                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                title="Delete Invite"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
                         </tr>
                         ))
                     )}
@@ -265,7 +291,6 @@ const AdminDashboard: React.FC = () => {
 
         {activeTab === 'reviews' && (
           <div className="space-y-8">
-            {/* AI Summary Section */}
             <div className="bg-indigo-900 p-8 rounded-3xl shadow-xl border border-indigo-800 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <Sparkles size={120} />
@@ -292,7 +317,6 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Detailed Reviews Logs */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b bg-slate-50">
                     <h3 className="font-bold text-slate-800">Customer Review Logs</h3>
