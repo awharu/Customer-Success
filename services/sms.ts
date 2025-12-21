@@ -1,11 +1,5 @@
 import { db } from './db';
-
-/**
- * Hero.co.nz (2talk) SMS API Configuration
- */
-const HERO_USER = "hkawharu@gmail.com"; 
-const HERO_PASS = "Brigid2107";     
-const HERO_API_ENDPOINT = "https://hero.co.nz/sms.php"; 
+import { apiGateway } from './apiGateway';
 
 export const smsService = {
   /**
@@ -21,107 +15,49 @@ export const smsService = {
 
   sendInvite: async (phoneNumber: string): Promise<{ success: boolean; message: string; link?: string; debugInfo?: string }> => {
     const logId = Math.random().toString(36).substring(7).toUpperCase();
+    const timestamp = new Date().toISOString();
+    
+    console.groupCollapsed(`[SMS Dispatch] Log ID: ${logId} | Timestamp: ${timestamp}`);
+    console.log(`1. Initiating invite for raw number: "${phoneNumber}"`);
+
     const normalizedPhone = smsService.formatNZNumber(phoneNumber);
+    console.log(`2. Normalized number to: ${normalizedPhone}`);
     
     // 1. Generate unique access code
     const accessCode = db.createCode(phoneNumber);
+    console.log(`3. Generated unique access code: ${accessCode.code}`);
     
-    // 2. Resolve absolute path for the review link
-    const { origin, pathname } = window.location;
-    let basePath = pathname;
-    if (pathname.split('/').pop()?.includes('.')) {
-      basePath = pathname.substring(0, pathname.lastIndexOf('/') + 1);
-    }
-    const absoluteBasePath = new URL(basePath, origin).href;
-    const reviewLink = `${absoluteBasePath}#/review/${accessCode.code}`;
+    // 2. Construct a robust absolute review link.
+    const baseUrl = window.location.href.split('#')[0];
+    const reviewLink = `${baseUrl}#/review/${accessCode.code}`;
+    console.log(`4. Constructed review link: ${reviewLink}`);
 
     // 3. Prepare SMS content
     const messageBody = `Please review your pharmacy delivery here: ${reviewLink}`;
+    console.log(`5. Prepared SMS body: "${messageBody}"`);
 
-    // 4. Construct parameters using standard Hero/2talk keys: user, pass, to, text
-    const params = new URLSearchParams();
-    params.append('user', HERO_USER);
-    params.append('pass', HERO_PASS);
-    params.append('to', normalizedPhone);
-    params.append('text', messageBody);
+    // 4. Use the API Gateway to dispatch the SMS
+    console.log("6. Sending request to API gateway...");
+    const result = await apiGateway.dispatchSms(normalizedPhone, messageBody);
 
-    console.group(`[SMS-DISPATCH-${logId}]`);
-    console.log(`Target: ${normalizedPhone}`);
-    console.log(`Payload:`, messageBody);
-
-    try {
-      /**
-       * The 'no-cors' mode has been removed to allow reading the API response.
-       * This requires the hero.co.nz API to support CORS. If it doesn't, this
-       * request may fail due to browser security policies.
-       */
-      const url = `${HERO_API_ENDPOINT}?${params.toString()}`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        cache: 'no-cache'
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed with HTTP status ${response.status}`);
-      }
-      
-      const responseText = await response.text();
-      const resultCode = parseInt(responseText.trim(), 10);
-
-      console.log(`[SUCCESS] API Response Code: ${resultCode}`);
+    if (result.success) {
+      console.info(`[SUCCESS] Gateway accepted request. Due to API CORS policy, delivery confirmation is unavailable.`);
+      console.log("Dispatch complete.");
       console.groupEnd();
-      
-      switch (resultCode) {
-        case 0:
-          return {
-            success: true,
-            message: "SMS successfully dispatched to the recipient.",
-            link: reviewLink,
-            debugInfo: `Log ID: ${logId} | Dest: ${normalizedPhone}`
-          };
-        case 2:
-          return {
-            success: false,
-            message: "SMS failed: Authentication error. Please check API credentials.",
-            link: reviewLink
-          };
-        case 3:
-          return {
-            success: false,
-            message: "SMS failed: Invalid destination number. Please check the phone number format.",
-            link: reviewLink
-          };
-        case 4:
-          return {
-            success: false,
-            message: "SMS failed: Invalid message content. The text may be malformed.",
-            link: reviewLink
-          };
-        default:
-          return {
-            success: false,
-            message: `SMS failed: Unknown API response code (${resultCode}). Check the gateway portal.`,
-            link: reviewLink
-          };
-      }
-
-    } catch (error: any) {
-      console.error(`[CRITICAL] Transport failure:`, error);
+      return {
+        success: true,
+        message: "SMS request dispatched. Delivery confirmation is not available from the browser.",
+        link: reviewLink,
+        debugInfo: `Log ID: ${logId} | Dest: ${normalizedPhone}`
+      };
+    } else {
+      console.error(`[FAILURE] SMS dispatch failed. The API gateway or network returned an error.`);
+      console.error(`Error Details:`, result.error || 'No error details available.');
+      console.log("Dispatch failed.");
       console.groupEnd();
-
-      // Provide a more specific message if the error looks like a CORS issue.
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        return { 
-          success: false, 
-          message: 'Network error: Could not connect to the SMS gateway. This may be a network issue or a CORS policy violation by the API.',
-          link: reviewLink
-        };
-      }
-      
       return { 
         success: false, 
-        message: `System error: ${error?.message || 'Check your internet connection.'}`,
+        message: `System error: Could not dispatch SMS request. Details: ${result.error}`,
         link: reviewLink
       };
     }
