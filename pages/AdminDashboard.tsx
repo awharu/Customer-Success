@@ -2,11 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { db } from '../services/db';
 import { AccessCode, Review } from '../types';
-import { Smartphone, FileText, ExternalLink, Trash2, RefreshCw } from 'lucide-react';
+import { Smartphone, FileText, ExternalLink, Trash2, RefreshCw, Settings } from 'lucide-react';
 import InviteManager from '../components/admin/InviteManager';
 import AnalyticsManager from '../components/admin/AnalyticsManager';
+import SettingsManager from '../components/admin/SettingsManager';
 
-type ActiveTab = 'invites' | 'reviews';
+type ActiveTab = 'invites' | 'reviews' | 'settings';
 
 const AdminDashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -59,6 +60,9 @@ const AdminDashboard: React.FC = () => {
           <button onClick={() => handleTabChange('reviews')} className={`flex-1 md:flex-none text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all ${activeTab === 'reviews' ? 'bg-teal-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}>
             <FileText size={18} /> <span>Review Logs</span>
           </button>
+          <button onClick={() => handleTabChange('settings')} className={`flex-1 md:flex-none text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all ${activeTab === 'settings' ? 'bg-teal-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}>
+            <Settings size={18} /> <span>Settings</span>
+          </button>
         </nav>
         
         <div className="p-4 mt-auto border-t border-slate-800 space-y-4">
@@ -75,15 +79,22 @@ const AdminDashboard: React.FC = () => {
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold text-slate-800">
-            {activeTab === 'invites' ? 'Delivery Invitations' : 'Customer Feedback Analytics'}
+            {{
+              invites: 'Delivery Invitations',
+              reviews: 'Customer Feedback Analytics',
+              settings: 'System Configuration',
+            }[activeTab]}
           </h2>
-          <button onClick={refreshData} className="p-2 text-slate-400 hover:text-slate-800 hover:bg-white rounded-full transition-all shadow-sm" aria-label="Refresh Data">
-            <RefreshCw size={20} />
-          </button>
+          {activeTab !== 'settings' && (
+            <button onClick={refreshData} className="p-2 text-slate-400 hover:text-slate-800 hover:bg-white rounded-full transition-all shadow-sm" aria-label="Refresh Data">
+              <RefreshCw size={20} />
+            </button>
+          )}
         </div>
 
         {activeTab === 'invites' && <InviteManager codes={codes} onDataChange={refreshData} />}
         {activeTab === 'reviews' && <AnalyticsManager reviews={reviews} />}
+        {activeTab === 'settings' && <SettingsManager />}
       </main>
     </div>
   );

@@ -1,6 +1,9 @@
 import { db } from './db';
 import { apiGateway } from './apiGateway';
 
+// Default message template if not configured by the admin.
+const DEFAULT_SMS_TEMPLATE = 'Please review your pharmacy delivery here: {{reviewLink}}';
+
 export const smsService = {
   /**
    * Normalizes New Zealand phone numbers to international format (64...)
@@ -28,13 +31,16 @@ export const smsService = {
     console.log(`3. Generated unique access code: ${accessCode.code}`);
     
     // 2. Construct a robust absolute review link.
-    const baseUrl = window.location.href.split('#')[0];
+    // FIX: Use location.origin + location.pathname to avoid 'blob:' URLs in sandboxed environments.
+    const baseUrl = (window.location.origin + window.location.pathname).replace(/\/$/, '');
     const reviewLink = `${baseUrl}#/review/${accessCode.code}`;
     console.log(`4. Constructed review link: ${reviewLink}`);
 
-    // 3. Prepare SMS content
-    const messageBody = `Please review your pharmacy delivery here: ${reviewLink}`;
-    console.log(`5. Prepared SMS body: "${messageBody}"`);
+    // 3. Prepare SMS content using a configurable template
+    const customTemplate = localStorage.getItem('SMS_TEMPLATE');
+    const template = customTemplate || DEFAULT_SMS_TEMPLATE;
+    const messageBody = template.replace('{{reviewLink}}', reviewLink);
+    console.log(`5. Prepared SMS body from template: "${messageBody}"`);
 
     // 4. Use the API Gateway to dispatch the SMS
     console.log("6. Sending request to API gateway...");
