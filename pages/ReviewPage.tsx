@@ -28,7 +28,7 @@ type Action =
 const initialState: State = {
   status: 'validating',
   step: 1,
-  productRatings: { quality: 0, effects: 0, taste: 0, appearance: 0 },
+  productRatings: { quality: 0, effects: 0, taste: 0, weight: 0 },
   deliveryRatings: { speed: 0, communication: 0, overall: 0 },
   comment: '',
 };
@@ -228,7 +228,7 @@ const ReviewPage: React.FC = () => {
                                 <StarRating size={32} label="Quality" value={productRatings.quality} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { quality: v } })} />
                                 <StarRating size={32} label="Effects" value={productRatings.effects} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { effects: v } })} />
                                 <StarRating size={32} label="Taste" value={productRatings.taste} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { taste: v } })} />
-                                <StarRating size={32} label="Appearance" value={productRatings.appearance} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { appearance: v } })} />
+                                <StarRating size={32} label="Weight" value={productRatings.weight} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { weight: v } })} />
                             </div>
                         </div>
                     )}

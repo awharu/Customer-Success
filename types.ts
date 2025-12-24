@@ -1,3 +1,4 @@
+
 export enum ReviewStatus {
   PENDING = 'PENDING',
   COMPLETED = 'COMPLETED'
@@ -14,7 +15,7 @@ export interface ProductRating {
   quality: number;
   effects: number;
   taste: number;
-  appearance: number;
+  weight: number;
 }
 
 export interface DeliveryRating {

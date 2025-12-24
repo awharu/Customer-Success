@@ -90,19 +90,23 @@ export const db = {
     if (total === 0) {
       return {
         totalReviews: 0,
-        averageProduct: { quality: 0, effects: 0, taste: 0, appearance: 0 },
+        averageProduct: { quality: 0, effects: 0, taste: 0, weight: 0 },
         averageDelivery: { speed: 0, communication: 0, overall: 0 },
       };
     }
 
     const sumProduct = reviews.reduce(
-      (acc, r) => ({
-        quality: acc.quality + r.productRating.quality,
-        effects: acc.effects + r.productRating.effects,
-        taste: acc.taste + r.productRating.taste,
-        appearance: acc.appearance + r.productRating.appearance,
-      }),
-      { quality: 0, effects: 0, taste: 0, appearance: 0 }
+      (acc, r) => {
+        // Handle backward compatibility for "appearance" if "weight" is missing in old records
+        const weightVal = r.productRating.weight || (r.productRating as any).appearance || 0;
+        return {
+          quality: acc.quality + r.productRating.quality,
+          effects: acc.effects + r.productRating.effects,
+          taste: acc.taste + r.productRating.taste,
+          weight: acc.weight + weightVal,
+        };
+      },
+      { quality: 0, effects: 0, taste: 0, weight: 0 }
     );
 
     const sumDelivery = reviews.reduce(
@@ -120,7 +124,7 @@ export const db = {
         quality: Number((sumProduct.quality / total).toFixed(1)),
         effects: Number((sumProduct.effects / total).toFixed(1)),
         taste: Number((sumProduct.taste / total).toFixed(1)),
-        appearance: Number((sumProduct.appearance / total).toFixed(1)),
+        weight: Number((sumProduct.weight / total).toFixed(1)),
       },
       averageDelivery: {
         speed: Number((sumDelivery.speed / total).toFixed(1)),

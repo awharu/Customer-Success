@@ -11,7 +11,7 @@ const ProductProfileChart: React.FC<ProductProfileChartProps> = ({ data }) => {
     { subject: 'Quality', A: data.quality, fullMark: 5 },
     { subject: 'Effects', A: data.effects, fullMark: 5 },
     { subject: 'Taste', A: data.taste, fullMark: 5 },
-    { subject: 'Look', A: data.appearance, fullMark: 5 },
+    { subject: 'Weight', A: data.weight, fullMark: 5 },
   ];
 
   return (

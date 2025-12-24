@@ -11,7 +11,7 @@ const AverageProductRatingsChart: React.FC<ChartProps> = ({ data }) => {
     { name: 'Quality', score: data.quality },
     { name: 'Effects', score: data.effects },
     { name: 'Taste', score: data.taste },
-    { name: 'Appearance', score: data.appearance },
+    { name: 'Weight', score: data.weight },
   ];
 
   return (
