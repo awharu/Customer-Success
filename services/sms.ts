@@ -2,7 +2,7 @@ import { db } from './db';
 import { apiGateway } from './apiGateway';
 import { DeliveryStatus } from '../types';
 
-const DEFAULT_SMS_TEMPLATE = 'Please review your pharmacy delivery here: {{reviewLink}}';
+const DEFAULT_SMS_TEMPLATE = 'Please review your drug delivery here: {{reviewLink}}';
 
 export const smsService = {
   formatNZNumber: (phone: string): string => {

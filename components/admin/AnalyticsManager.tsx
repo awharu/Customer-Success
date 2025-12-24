@@ -170,7 +170,7 @@ const AnalyticsManager: React.FC<AnalyticsManagerProps> = ({ reviews, metrics })
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest border-b">
               <tr>
-                <th className="p-6">Patient Ref</th>
+                <th className="p-6">Customer Ref</th>
                 <th className="p-6">Score</th>
                 <th className="p-6">Delivery Details</th>
                 <th className="p-6">Product Details</th>

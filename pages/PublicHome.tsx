@@ -54,10 +54,10 @@ const PublicHome: React.FC = () => {
             <div className="bg-teal-600 p-1.5 rounded-lg">
               <Pill className="text-white" size={20} />
             </div>
-            <span className="font-bold text-slate-800 tracking-tight text-xl">PharmaFeedback</span>
+            <span className="font-bold text-slate-800 tracking-tight text-xl">CustomerSuccess</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#how-it-works" className="text-sm font-medium text-slate-500 hover:text-teal-600 transition-colors">How it works</a>
+            <Link to="/how-it-works" className="text-sm font-medium text-slate-500 hover:text-teal-600 transition-colors">How it works</Link>
             <a href="#metrics" className="text-sm font-medium text-slate-500 hover:text-teal-600 transition-colors">Live Stats</a>
           </div>
         </div>
@@ -76,10 +76,10 @@ const PublicHome: React.FC = () => {
             Live Quality Tracking
           </div>
           <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight">
-            Elevating Pharmacy <br /><span className="text-teal-300">Delivery Standards.</span>
+            Elevating Drug <br /><span className="text-teal-300">Delivery Standards.</span>
           </h1>
           <p className="text-teal-100 text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-            PharmaFeedback bridges the gap between patient and provider through verified, anonymous performance tracking.
+            CustomerSuccess bridges the gap between customer and seller through verified, anonymous performance tracking.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
             <div className="flex items-center gap-2 bg-teal-800/50 px-5 py-2.5 rounded-2xl border border-teal-600">
@@ -143,7 +143,7 @@ const PublicHome: React.FC = () => {
                                 {review.id.substring(0, 2)}
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-800 uppercase tracking-wide">Anonymous Patient</p>
+                                <p className="text-xs font-bold text-slate-800 uppercase tracking-wide">Anonymous Customer</p>
                                 <p className="text-[10px] text-slate-400">Verified Delivery</p>
                             </div>
                         </div>
@@ -153,16 +153,16 @@ const PublicHome: React.FC = () => {
         </section>
       )}
 
-      {/* How it Works */}
-      <section id="how-it-works" className="max-w-7xl mx-auto px-6 py-24">
+      {/* How it Works Preview Section */}
+      <section id="how-it-works-preview" className="max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <h2 className="text-xs font-black text-teal-600 uppercase tracking-widest mb-2">Our Process</h2>
           <h3 className="text-3xl font-bold text-slate-800">Designed for Integrity</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {[
-            { icon: Smartphone, title: 'Secure Invite', desc: 'Patients receive a one-time secure SMS link after their delivery is completed.' },
-            { icon: Lock, title: 'Total Privacy', desc: 'Reviews are encrypted and disconnected from patient identity before being aggregated.' },
+            { icon: Smartphone, title: 'Secure Invite', desc: 'Customers receive a one-time secure SMS link after their delivery is completed.' },
+            { icon: Lock, title: 'Total Privacy', desc: 'Reviews are encrypted and disconnected from customer identity before being aggregated.' },
             { icon: Activity, title: 'Public Insights', desc: 'Aggregated metrics are published in real-time to maintain service transparency.' }
           ].map((item, idx) => (
             <div key={idx} className="flex flex-col items-center text-center">
@@ -173,6 +173,11 @@ const PublicHome: React.FC = () => {
               <p className="text-slate-500 leading-relaxed text-sm px-4">{item.desc}</p>
             </div>
           ))}
+        </div>
+        <div className="text-center mt-12">
+            <Link to="/how-it-works" className="inline-flex items-center gap-2 text-slate-900 font-bold hover:text-teal-600 transition-colors">
+                View detailed process <ArrowRight size={16} />
+            </Link>
         </div>
       </section>
 
@@ -243,9 +248,9 @@ const PublicHome: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-2">
             <Pill className="text-teal-600" size={24} />
-            <span className="font-bold text-slate-800 tracking-tight text-xl">PharmaFeedback</span>
+            <span className="font-bold text-slate-800 tracking-tight text-xl">CustomerSuccess</span>
           </div>
-          <p className="text-slate-400 text-sm">© 2025 Pharmacy Quality Assurance Network. All rights reserved.</p>
+          <p className="text-slate-400 text-sm">© 2025 Drug Quality Assurance Network. All rights reserved.</p>
           <div className="flex gap-6">
             <Link to="/admin" className="text-sm font-bold text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">Admin Access</Link>
           </div>

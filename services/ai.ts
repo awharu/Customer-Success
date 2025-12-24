@@ -29,7 +29,7 @@ export const aiService = {
 
       const response = await ai.models.generateContent({
         model,
-        contents: `You are an analytics assistant for a pharmacy delivery service. 
+        contents: `You are an analytics assistant for a drug delivery service. 
         Analyze the following customer feedback comments and provide a concise summary of themes. 
         Focus on delivery speed, product quality, and customer service.
         

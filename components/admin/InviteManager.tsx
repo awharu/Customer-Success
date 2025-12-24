@@ -76,7 +76,7 @@ const InviteManager: React.FC<InviteManagerProps> = ({ codes, onDataChange }) =>
   };
 
   const handleDeleteCode = (code: string) => {
-    if (window.confirm(`Delete code ${code}? This patient will no longer be able to leave a review.`)) {
+    if (window.confirm(`Delete code ${code}? This customer will no longer be able to leave a review.`)) {
       db.deleteCode(code);
       onDataChange();
       showToast('Invite code removed.', 'info');
@@ -106,12 +106,12 @@ const InviteManager: React.FC<InviteManagerProps> = ({ codes, onDataChange }) =>
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
       {/* Dispatch Card */}
       <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
-        <h3 className="text-2xl font-black text-slate-800 mb-2">Invite Patient</h3>
+        <h3 className="text-2xl font-black text-slate-800 mb-2">Invite Customer</h3>
         <p className="text-slate-400 font-medium text-sm mb-8">Send a one-time review code via SMS.</p>
         
         <form onSubmit={handleSendInvite} className="space-y-6">
           <div>
-            <label htmlFor="phone-number" className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-[0.1em]">Patient NZ Mobile</label>
+            <label htmlFor="phone-number" className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-[0.1em]">Customer NZ Mobile</label>
             <input
               id="phone-number"
               type="tel"
@@ -172,7 +172,7 @@ const InviteManager: React.FC<InviteManagerProps> = ({ codes, onDataChange }) =>
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-400 text-[10px] uppercase font-black tracking-widest border-b">
               <tr>
-                <th className="p-6">Patient Contact</th>
+                <th className="p-6">Customer Contact</th>
                 <th className="p-6">Gateway Status</th>
                 <th className="p-6">Review State</th>
                 <th className="p-6">Access Code</th>

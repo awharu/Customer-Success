@@ -1,8 +1,8 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/db';
 import StarRating from '../components/StarRating';
-import { CheckCircle, XCircle, Loader2, ArrowRight, ArrowLeft, Package, Truck, MessageSquare } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowRight, ArrowLeft, Package, Truck, MessageSquare, Check } from 'lucide-react';
 import { ProductRating, DeliveryRating } from '../types';
 
 type State = {
@@ -146,18 +146,52 @@ const ReviewPage: React.FC = () => {
   }
 
   const renderProgressBar = () => (
-    <div className="mb-8">
-      <div className="flex justify-between mb-2 px-1">
-        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${step >= 1 ? 'text-teal-600' : 'text-slate-300'}`}>Product</span>
-        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${step >= 2 ? 'text-teal-600' : 'text-slate-300'}`}>Delivery</span>
-        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${step >= 3 ? 'text-teal-600' : 'text-slate-300'}`}>Comment</span>
-      </div>
-      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-        <div 
-            className="h-full bg-teal-600 transition-all duration-500 ease-out rounded-full"
-            style={{ width: `${(step / 3) * 100}%` }}
-        />
-      </div>
+    <div className="relative mb-12 px-4">
+        {/* Connecting Lines */}
+        <div className="absolute top-5 left-0 w-full px-12 box-border">
+            <div className="w-full h-1 bg-slate-100 rounded-full">
+                 <div 
+                    className="h-full bg-teal-500 transition-all duration-700 ease-in-out rounded-full"
+                    style={{ width: `${((step - 1) / 2) * 100}%` }}
+                />
+            </div>
+        </div>
+
+        {/* Steps */}
+        <div className="relative flex justify-between items-start">
+            {[
+                { id: 1, label: 'Quality', icon: Package },
+                { id: 2, label: 'Delivery', icon: Truck },
+                { id: 3, label: 'Feedback', icon: MessageSquare }
+            ].map((s) => {
+                const isActive = step >= s.id;
+                const isCompleted = step > s.id;
+                
+                return (
+                    <div key={s.id} className="flex flex-col items-center gap-3 z-10 group cursor-default">
+                        <div 
+                            className={`
+                                w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500 ease-out
+                                ${isActive 
+                                    ? 'bg-teal-500 border-teal-500 text-white shadow-lg shadow-teal-500/30 scale-110' 
+                                    : 'bg-white border-slate-200 text-slate-300'
+                                }
+                            `}
+                        >
+                            {isCompleted ? <Check size={18} strokeWidth={3} /> : <s.icon size={18} />}
+                        </div>
+                        <span 
+                            className={`
+                                text-[10px] font-black uppercase tracking-widest transition-all duration-500
+                                ${isActive ? 'text-teal-600 translate-y-0 opacity-100' : 'text-slate-300 translate-y-1 opacity-70'}
+                            `}
+                        >
+                            {s.label}
+                        </span>
+                    </div>
+                );
+            })}
+        </div>
     </div>
   );
 
@@ -165,7 +199,7 @@ const ReviewPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 py-8 px-4 flex items-center justify-center">
       <div className="max-w-xl w-full bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col min-h-[600px]">
         {/* Header */}
-        <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
+        <div className="bg-slate-900 p-8 text-white relative overflow-hidden shrink-0">
             <div className="absolute top-0 right-0 p-4 opacity-5">
                 <Package size={120} />
             </div>
@@ -176,75 +210,77 @@ const ReviewPage: React.FC = () => {
         <div className="flex-1 p-8 flex flex-col">
             {renderProgressBar()}
 
-            <div className="flex-1">
-                {/* Step 1: Product */}
-                {step === 1 && (
-                    <div className="animate-in slide-in-from-right-8 fade-in duration-300 space-y-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="bg-teal-50 p-3 rounded-2xl text-teal-600">
-                                <Package size={24} />
+            <div className="flex-1 relative">
+                <div key={step} className="animate-in fade-in slide-in-from-right-8 duration-500 ease-out fill-mode-forwards">
+                    {/* Step 1: Product */}
+                    {step === 1 && (
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="bg-teal-50 p-3 rounded-2xl text-teal-600">
+                                    <Package size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-800">Product Quality</h2>
+                                    <p className="text-xs text-slate-400">Rate the items you received</p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-800">Product Quality</h2>
-                                <p className="text-xs text-slate-400">Rate the items you received</p>
+                            <div className="grid grid-cols-1 gap-y-2">
+                                <StarRating size={32} label="Quality" value={productRatings.quality} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { quality: v } })} />
+                                <StarRating size={32} label="Effects" value={productRatings.effects} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { effects: v } })} />
+                                <StarRating size={32} label="Taste" value={productRatings.taste} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { taste: v } })} />
+                                <StarRating size={32} label="Appearance" value={productRatings.appearance} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { appearance: v } })} />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-y-2">
-                            <StarRating size={32} label="Quality" value={productRatings.quality} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { quality: v } })} />
-                            <StarRating size={32} label="Effects" value={productRatings.effects} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { effects: v } })} />
-                            <StarRating size={32} label="Taste" value={productRatings.taste} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { taste: v } })} />
-                            <StarRating size={32} label="Appearance" value={productRatings.appearance} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { appearance: v } })} />
-                        </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Step 2: Delivery */}
-                {step === 2 && (
-                    <div className="animate-in slide-in-from-right-8 fade-in duration-300 space-y-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="bg-blue-50 p-3 rounded-2xl text-blue-600">
-                                <Truck size={24} />
+                    {/* Step 2: Delivery */}
+                    {step === 2 && (
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="bg-blue-50 p-3 rounded-2xl text-blue-600">
+                                    <Truck size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-800">Delivery Experience</h2>
+                                    <p className="text-xs text-slate-400">Rate the logistics service</p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-800">Delivery Experience</h2>
-                                <p className="text-xs text-slate-400">Rate the logistics service</p>
+                            <div className="grid grid-cols-1 gap-y-4">
+                                <StarRating size={32} label="Speed" value={deliveryRatings.speed} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { speed: v } })} />
+                                <StarRating size={32} label="Communication" value={deliveryRatings.communication} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { communication: v } })} />
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <StarRating size={32} label="Overall Satisfaction" value={deliveryRatings.overall} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { overall: v } })} />
+                                </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-y-4">
-                            <StarRating size={32} label="Speed" value={deliveryRatings.speed} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { speed: v } })} />
-                            <StarRating size={32} label="Communication" value={deliveryRatings.communication} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { communication: v } })} />
-                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <StarRating size={32} label="Overall Satisfaction" value={deliveryRatings.overall} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { overall: v } })} />
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Step 3: Comment */}
-                {step === 3 && (
-                    <div className="animate-in slide-in-from-right-8 fade-in duration-300 space-y-6">
-                         <div className="flex items-center gap-3 mb-6">
-                            <div className="bg-amber-50 p-3 rounded-2xl text-amber-600">
-                                <MessageSquare size={24} />
+                    {/* Step 3: Comment */}
+                    {step === 3 && (
+                        <div className="space-y-6">
+                             <div className="flex items-center gap-3 mb-6">
+                                <div className="bg-amber-50 p-3 rounded-2xl text-amber-600">
+                                    <MessageSquare size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-800">Final Thoughts</h2>
+                                    <p className="text-xs text-slate-400">Optional feedback</p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-800">Final Thoughts</h2>
-                                <p className="text-xs text-slate-400">Optional feedback</p>
-                            </div>
+                            <textarea
+                                className="w-full border-2 border-slate-100 rounded-2xl p-5 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-300 min-h-[160px] text-slate-700 resize-none font-medium"
+                                placeholder="Tell us more about your experience..."
+                                value={comment}
+                                onChange={(e) => dispatch({ type: 'UPDATE_COMMENT', payload: e.target.value })}
+                                autoFocus
+                            />
                         </div>
-                        <textarea
-                            className="w-full border-2 border-slate-100 rounded-2xl p-5 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-300 min-h-[160px] text-slate-700 resize-none font-medium"
-                            placeholder="Tell us more about your experience..."
-                            value={comment}
-                            onChange={(e) => dispatch({ type: 'UPDATE_COMMENT', payload: e.target.value })}
-                            autoFocus
-                        />
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Actions */}
-            <div className="pt-8 mt-4 border-t border-slate-50 flex gap-4">
+            <div className="pt-8 mt-4 border-t border-slate-50 flex gap-4 shrink-0">
                 {step > 1 && (
                     <button 
                         onClick={() => dispatch({ type: 'PREV_STEP' })}

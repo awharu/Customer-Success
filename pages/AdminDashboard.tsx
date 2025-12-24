@@ -64,7 +64,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleReset = () => {
-    if (window.confirm("CRITICAL ACTION: This will erase all patient reviews and invite codes. Are you absolutely sure?")) {
+    if (window.confirm("CRITICAL ACTION: This will erase all customer reviews and invite codes. Are you absolutely sure?")) {
       db.reset();
       refreshData();
       showToast('Database wiped successfully.', 'info');
@@ -77,7 +77,7 @@ const AdminDashboard: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `pharma_backup_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `customer_success_backup_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     showToast('Backup file generated.', 'success');
   };

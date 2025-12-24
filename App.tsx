@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import PublicHome from './pages/PublicHome';
 import ReviewPage from './pages/ReviewPage';
 import AdminDashboard from './pages/AdminDashboard';
+import HowItWorks from './pages/HowItWorks';
 import { ToastProvider } from './components/ui/ToastProvider';
 
 interface ErrorBoundaryProps {
@@ -72,6 +73,7 @@ const App: React.FC = () => {
         <HashRouter>
           <Routes>
             <Route path="/" element={<PublicHome />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/review/:code" element={<ReviewPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
