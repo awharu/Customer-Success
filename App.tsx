@@ -1,8 +1,10 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import PublicHome from './pages/PublicHome';
 import ReviewPage from './pages/ReviewPage';
 import AdminDashboard from './pages/AdminDashboard';
+import { ToastProvider } from './components/ui/ToastProvider';
 
 interface ErrorBoundaryProps {
   children?: ReactNode;
@@ -13,15 +15,10 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-/**
- * ErrorBoundary component to catch runtime errors and prevent the entire app from crashing.
- * Standardized to React 18 patterns.
- */
+// Fix: Explicitly extending React.Component and destructuring props/state in render 
+// to resolve TypeScript error where 'props' was not correctly recognized on the instance.
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Replaced the constructor-based state initialization with the class property syntax.
-  // This resolves the TypeScript errors where 'state' and 'props' were not being
-  // recognized on the component instance.
-  state: ErrorBoundaryState = {
+  public state: ErrorBoundaryState = {
     hasError: false,
     error: null,
   };
@@ -31,22 +28,31 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("App Crash:", error, errorInfo);
+    console.error("App Crash Details:", error, errorInfo);
   }
 
   render() {
-    if (this.state.hasError) {
+    // Destructure to ensure explicit access to state and props
+    const { hasError, error } = this.state;
+    const { children } = this.props;
+
+    if (hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-red-50 p-4 font-sans">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-red-600 mb-2">System Error</h2>
-            <p className="text-sm text-slate-600 mb-4">The application encountered a runtime exception.</p>
-            <div className="bg-slate-100 p-3 rounded text-xs font-mono text-slate-800 overflow-auto max-h-32">
-              {this.state.error?.message || "Unknown error"}
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 border border-red-100 text-center">
+            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-red-600 text-2xl font-bold">!</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">System Error</h2>
+            <p className="text-slate-600 mb-6 leading-relaxed">
+              We've encountered an unexpected issue. Don't worry, your data is likely safe in local storage.
+            </p>
+            <div className="bg-slate-50 p-4 rounded-xl text-left text-xs font-mono text-slate-500 overflow-auto max-h-32 mb-6 border border-slate-100">
+              {error?.message || "Unknown execution error"}
             </div>
             <button
-              onClick={() => window.location.reload()}
-              className="mt-4 w-full bg-slate-800 text-white py-2 rounded hover:bg-slate-700 transition-colors"
+              onClick={() => window.location.href = window.location.pathname}
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-95"
             >
               Restart Application
             </button>
@@ -55,20 +61,22 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    return this.props.children;
+    return children;
   }
 }
 
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<PublicHome />} />
-          <Route path="/review/:code" element={<ReviewPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Routes>
-      </HashRouter>
+      <ToastProvider>
+        <HashRouter>
+          <Routes>
+            <Route path="/" element={<PublicHome />} />
+            <Route path="/review/:code" element={<ReviewPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Routes>
+        </HashRouter>
+      </ToastProvider>
     </ErrorBoundary>
   );
 };

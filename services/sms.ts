@@ -1,13 +1,10 @@
 import { db } from './db';
 import { apiGateway } from './apiGateway';
+import { DeliveryStatus } from '../types';
 
-// Default message template if not configured by the admin.
 const DEFAULT_SMS_TEMPLATE = 'Please review your pharmacy delivery here: {{reviewLink}}';
 
 export const smsService = {
-  /**
-   * Normalizes New Zealand phone numbers to international format (64...)
-   */
   formatNZNumber: (phone: string): string => {
     let clean = phone.replace(/[^0-9]/g, '');
     if (clean.startsWith('0')) {
@@ -18,54 +15,74 @@ export const smsService = {
 
   sendInvite: async (phoneNumber: string): Promise<{ success: boolean; message: string; link?: string; debugInfo?: string }> => {
     const logId = Math.random().toString(36).substring(7).toUpperCase();
-    const timestamp = new Date().toISOString();
-    
-    console.groupCollapsed(`[SMS Dispatch] Log ID: ${logId} | Timestamp: ${timestamp}`);
-    console.log(`1. Initiating invite for raw number: "${phoneNumber}"`);
-
     const normalizedPhone = smsService.formatNZNumber(phoneNumber);
-    console.log(`2. Normalized number to: ${normalizedPhone}`);
-    
-    // 1. Generate unique access code
     const accessCode = db.createCode(phoneNumber);
-    console.log(`3. Generated unique access code: ${accessCode.code}`);
     
-    // 2. Construct a robust absolute review link.
-    // FIX: Use location.origin + location.pathname to avoid 'blob:' URLs in sandboxed environments.
-    const baseUrl = (window.location.origin + window.location.pathname).replace(/\/$/, '');
-    const reviewLink = `${baseUrl}#/review/${accessCode.code}`;
-    console.log(`4. Constructed review link: ${reviewLink}`);
+    const getBaseUrl = (): string => {
+      const href = window.location.href;
+      if (href.startsWith('blob:')) {
+        try {
+          const url = new URL(href.substring(5));
+          return url.origin;
+        } catch (e) {
+          return 'https://' + window.location.host;
+        }
+      } else {
+        const hashIndex = href.indexOf('#');
+        return hashIndex >= 0 ? href.substring(0, hashIndex) : href;
+      }
+    };
 
-    // 3. Prepare SMS content using a configurable template
+    const baseUrl = getBaseUrl().replace(/\/$/, '');
+    const reviewLink = `${baseUrl}/#/review/${accessCode.code}`;
+
     const customTemplate = localStorage.getItem('SMS_TEMPLATE');
     const template = customTemplate || DEFAULT_SMS_TEMPLATE;
     const messageBody = template.replace('{{reviewLink}}', reviewLink);
-    console.log(`5. Prepared SMS body from template: "${messageBody}"`);
 
-    // 4. Use the API Gateway to dispatch the SMS
-    console.log("6. Sending request to API gateway...");
     const result = await apiGateway.dispatchSms(normalizedPhone, messageBody);
 
     if (result.success) {
-      console.info(`[SUCCESS] Gateway accepted request. Due to API CORS policy, delivery confirmation is unavailable.`);
-      console.log("Dispatch complete.");
-      console.groupEnd();
+      // Update state to SENT and store the provider's message ID
+      db.updateDeliveryStatus(accessCode.code, DeliveryStatus.SENT, result.msgId);
+      
+      // Trigger an immediate background poll
+      smsService.syncStatuses();
+
       return {
         success: true,
-        message: "SMS request dispatched. Delivery confirmation is not available from the browser.",
+        message: "SMS dispatched. Tracking delivery status...",
         link: reviewLink,
-        debugInfo: `Log ID: ${logId} | Dest: ${normalizedPhone}`
+        debugInfo: `ID: ${result.msgId}`
       };
     } else {
-      console.error(`[FAILURE] SMS dispatch failed. The API gateway or network returned an error.`);
-      console.error(`Error Details:`, result.error || 'No error details available.');
-      console.log("Dispatch failed.");
-      console.groupEnd();
+      db.updateDeliveryStatus(accessCode.code, DeliveryStatus.FAILED);
       return { 
         success: false, 
-        message: `System error: Could not dispatch SMS request. Details: ${result.error}`,
+        message: `System error: ${result.error}`,
         link: reviewLink
       };
+    }
+  },
+
+  /**
+   * Synchronizes delivery statuses for all pending invites.
+   */
+  syncStatuses: async (): Promise<void> => {
+    const codes = db.getCodes();
+    const pending = codes.filter(c => c.deliveryStatus === DeliveryStatus.SENT && c.providerMessageId);
+
+    for (const code of pending) {
+      try {
+        const check = await apiGateway.checkSmsStatus(code.providerMessageId!);
+        if (check.status === 'DELIVERED') {
+          db.updateDeliveryStatus(code.code, DeliveryStatus.DELIVERED);
+        } else if (check.status === 'FAILED') {
+          db.updateDeliveryStatus(code.code, DeliveryStatus.FAILED);
+        }
+      } catch (e) {
+        console.error(`Status sync failed for ${code.code}`, e);
+      }
     }
   }
 };

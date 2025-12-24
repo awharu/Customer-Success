@@ -1,11 +1,10 @@
-import { AccessCode, Review, ReviewStatus, AggregatedMetrics } from '../types';
+import { AccessCode, Review, ReviewStatus, DeliveryStatus, AggregatedMetrics } from '../types';
 
 const STORAGE_KEYS = {
   CODES: 'pharma_codes',
   REVIEWS: 'pharma_reviews',
 };
 
-// Helper to generate a random 6-character code
 const generateUniqueId = (): string => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
@@ -18,6 +17,7 @@ export const db = {
       code: generateUniqueId(),
       phoneNumber,
       status: ReviewStatus.PENDING,
+      deliveryStatus: DeliveryStatus.QUEUED,
       createdAt: new Date().toISOString(),
     };
     codes.push(newCode);
@@ -28,6 +28,17 @@ export const db = {
   getCodes: (): AccessCode[] => {
     const data = localStorage.getItem(STORAGE_KEYS.CODES);
     return data ? JSON.parse(data) : [];
+  },
+
+  updateDeliveryStatus: (code: string, status: DeliveryStatus, msgId?: string) => {
+    const codes = db.getCodes();
+    const index = codes.findIndex((c) => c.code === code);
+    if (index !== -1) {
+      codes[index].deliveryStatus = status;
+      if (msgId) codes[index].providerMessageId = msgId;
+      codes[index].lastCheckedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEYS.CODES, JSON.stringify(codes));
+    }
   },
 
   deleteCode: (code: string) => {
@@ -119,7 +130,6 @@ export const db = {
     };
   },
   
-  // Reset for Demo
   reset: () => {
     localStorage.removeItem(STORAGE_KEYS.CODES);
     localStorage.removeItem(STORAGE_KEYS.REVIEWS);

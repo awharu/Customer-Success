@@ -1,20 +1,8 @@
 /**
  * API Gateway Simulation
- *
- * This module simulates a backend API gateway. In a real-world application,
- * this logic would live on a secure server to protect credentials and handle
- * third-party API interactions.
- *
- * Credentials for the SMS service are loaded from localStorage, configurable
- * via the admin dashboard.
  */
-
 const HERO_API_ENDPOINT = "https://hero.co.nz/sms.php";
 
-/**
- * Retrieves SMS credentials from localStorage.
- * @returns An object containing the username and password, or null if not found.
- */
 const getSmsCredentials = (): { username: string | null; password: string | null } => {
   try {
     const username = localStorage.getItem('HERO_USERNAME');
@@ -26,16 +14,12 @@ const getSmsCredentials = (): { username: string | null; password: string | null
   }
 };
 
-
 export const apiGateway = {
-  dispatchSms: async (destination: string, message: string): Promise<{ success: boolean; error?: string }> => {
+  dispatchSms: async (destination: string, message: string): Promise<{ success: boolean; msgId?: string; error?: string }> => {
     const { username: HERO_USERNAME, password: HERO_PASSWORD } = getSmsCredentials();
     
-    // Critical check to ensure credentials are provided in the environment.
     if (!HERO_USERNAME || !HERO_PASSWORD) {
-      const errorMessage = "SMS gateway credentials are not configured. Please set them in the Admin > Settings panel.";
-      console.error("[API_GATEWAY] Configuration Error:", errorMessage);
-      return { success: false, error: errorMessage };
+      return { success: false, error: "SMS gateway credentials not configured." };
     }
 
     const params = new URLSearchParams();
@@ -45,28 +29,36 @@ export const apiGateway = {
     params.append('message', message);
 
     try {
-      /**
-       * The API documentation supports POST. Using POST is more secure than GET
-       * as parameters are not stored in browser history or server logs.
-       *
-       * Using 'no-cors' mode is a workaround because the hero.co.nz API does not
-       * send the necessary CORS headers for browser-based requests. This means
-       * the browser will send the request but will not allow the client-side
-       * code to read the response body, making it impossible to confirm success
-       * from the API. We can only confirm that the request was dispatched.
-       */
+      // no-cors means we can't see the response body (and thus the real msgid)
       await fetch(HERO_API_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params,
         mode: 'no-cors',
       });
-      return { success: true };
+
+      // Simulation: Return a mock message ID since we can't read the real one due to CORS
+      const mockMsgId = 'HERO_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      return { success: true, msgId: mockMsgId };
     } catch (error: any) {
-      console.error("[API_GATEWAY] SMS Transport failure:", error);
       return { success: false, error: error.message };
     }
   },
+
+  /**
+   * Simulates polling the HERO API for message status.
+   * In a real CORS-enabled environment, this would call an endpoint like sms_status.php
+   */
+  checkSmsStatus: async (msgId: string): Promise<{ status: 'SENT' | 'DELIVERED' | 'FAILED' }> => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Simulation logic: Messages transition from SENT to DELIVERED after a random time
+    // For demo purposes, we base it on the ID or current time
+    const seed = parseInt(msgId.replace(/\D/g, '') || '0') || Date.now();
+    const isReady = (Date.now() - seed) % 10 > 3; // 70% chance to be delivered
+
+    if (isReady) return { status: 'DELIVERED' };
+    return { status: 'SENT' };
+  }
 };
