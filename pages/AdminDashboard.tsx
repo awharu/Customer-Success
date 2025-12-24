@@ -90,7 +90,7 @@ const AdminDashboard: React.FC = () => {
             <Lock className="text-teal-600" size={32} />
           </div>
           <h2 className="text-3xl font-black text-slate-800 mb-2">Admin Gateway</h2>
-          <p className="text-slate-500 mb-8 font-medium">Please enter your management key (hint: 'admin').</p>
+          <p className="text-slate-500 mb-8 font-medium">Please enter your management key.</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="password"

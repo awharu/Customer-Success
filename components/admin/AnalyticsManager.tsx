@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { aiService } from '../../services/ai';
 import { Review, AggregatedMetrics } from '../../types';
-import { Sparkles, RefreshCw, BrainCircuit, Copy, Check } from 'lucide-react';
+import { Sparkles, RefreshCw, BrainCircuit, Copy, Check, Search, Filter } from 'lucide-react';
 import AverageProductRatingsChart from './charts/AverageProductRatingsChart';
 import AverageDeliveryRatingsChart from './charts/AverageDeliveryRatingsChart';
+import PerformanceTrendChart from './charts/PerformanceTrendChart';
 import { useToast } from '../ui/ToastProvider';
 
 interface AnalyticsManagerProps {
@@ -16,7 +17,18 @@ const AnalyticsManager: React.FC<AnalyticsManagerProps> = ({ reviews, metrics })
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [useThinkingMode, setUseThinkingMode] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const { showToast } = useToast();
+
+  const filteredReviews = useMemo(() => {
+    if (!searchTerm) return reviews;
+    const lower = searchTerm.toLowerCase();
+    return reviews.filter(r => 
+      r.comment?.toLowerCase().includes(lower) || 
+      r.code.toLowerCase().includes(lower) ||
+      r.id.toLowerCase().includes(lower)
+    );
+  }, [reviews, searchTerm]);
 
   const generateSummary = async () => {
     setIsSummarizing(true);
@@ -113,42 +125,68 @@ const AnalyticsManager: React.FC<AnalyticsManagerProps> = ({ reviews, metrics })
         </div>
       </div>
       
+      {/* Charts Grid */}
       {metrics && metrics.totalReviews > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <AverageProductRatingsChart data={metrics.averageProduct} />
-          <AverageDeliveryRatingsChart data={metrics.averageDelivery} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* New Trend Chart spans 2 cols on XL */}
+            <div className="lg:col-span-2 xl:col-span-3">
+                <PerformanceTrendChart reviews={reviews} />
+            </div>
+            <AverageProductRatingsChart data={metrics.averageProduct} />
+            <AverageDeliveryRatingsChart data={metrics.averageDelivery} />
+            {/* Placeholder for future chart or stats */}
+            <div className="bg-gradient-to-br from-teal-500 to-teal-700 p-6 rounded-2xl shadow-sm text-white flex flex-col justify-center items-center text-center">
+                <Sparkles size={48} className="mb-4 text-teal-200" />
+                <h3 className="text-2xl font-black">{metrics.totalReviews}</h3>
+                <p className="text-teal-100 font-medium">Total Validated Reviews</p>
+            </div>
         </div>
       )}
 
       {/* Review Table */}
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-8 border-b bg-slate-50 flex justify-between items-center">
+        <div className="p-8 border-b bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-6">
           <div>
             <h3 className="text-xl font-black text-slate-800 tracking-tight">Review Stream</h3>
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Raw Customer Logs</p>
           </div>
-          <span className="bg-slate-200 text-slate-600 px-4 py-1.5 rounded-full text-xs font-black">
-            {reviews.length} TOTAL
-          </span>
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+             <div className="relative group w-full sm:w-64">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={16} />
+                <input 
+                    type="text" 
+                    placeholder="Search comments or IDs..." 
+                    className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+             </div>
+             <span className="bg-slate-200 text-slate-600 px-4 py-1.5 rounded-full text-xs font-black shrink-0">
+                {filteredReviews.length}
+             </span>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest border-b">
               <tr>
                 <th className="p-6">Patient Ref</th>
-                <th className="p-6">Sentiment</th>
+                <th className="p-6">Score</th>
                 <th className="p-6">Delivery Details</th>
                 <th className="p-6">Product Details</th>
                 <th className="p-6 min-w-[300px]">Comments</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {reviews.length === 0 ? (
-                <tr><td colSpan={5} className="p-20 text-center text-slate-300 italic font-medium">Awaiting first patient feedback.</td></tr>
+              {filteredReviews.length === 0 ? (
+                <tr><td colSpan={5} className="p-20 text-center text-slate-300 italic font-medium">No matching feedback found.</td></tr>
               ) : (
-                reviews.map((r) => (
+                filteredReviews.map((r) => (
                   <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="p-6 font-mono text-[11px] text-slate-400 font-bold tracking-tighter">#{r.id}</td>
+                    <td className="p-6">
+                        <span className="font-mono text-[11px] text-slate-500 font-bold tracking-tighter block">#{r.id}</span>
+                        <span className="text-[10px] text-slate-400">{new Date(r.timestamp).toLocaleDateString()}</span>
+                    </td>
                     <td className="p-6">
                       <div className="flex items-center gap-2">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white text-lg ${r.deliveryRating.overall >= 4 ? 'bg-teal-500 shadow-teal-500/20' : r.deliveryRating.overall >= 2 ? 'bg-amber-500 shadow-amber-500/20' : 'bg-red-500 shadow-red-500/20 shadow-lg'}`}>
@@ -158,20 +196,21 @@ const AnalyticsManager: React.FC<AnalyticsManagerProps> = ({ reviews, metrics })
                     </td>
                     <td className="p-6">
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs font-bold text-slate-700 flex justify-between">Speed: <span className="text-slate-400">{r.deliveryRating.speed}</span></span>
-                        <span className="text-xs font-bold text-slate-700 flex justify-between">Comms: <span className="text-slate-400">{r.deliveryRating.communication}</span></span>
+                        <span className="text-xs font-bold text-slate-700 flex justify-between gap-4">Speed: <span className="text-slate-400 font-mono">{r.deliveryRating.speed}/5</span></span>
+                        <span className="text-xs font-bold text-slate-700 flex justify-between gap-4">Comms: <span className="text-slate-400 font-mono">{r.deliveryRating.communication}/5</span></span>
                       </div>
                     </td>
                     <td className="p-6">
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs font-bold text-slate-700 flex justify-between">Quality: <span className="text-slate-400">{r.productRating.quality}</span></span>
-                        <span className="text-xs font-bold text-slate-700 flex justify-between">Taste: <span className="text-slate-400">{r.productRating.taste}</span></span>
+                        <span className="text-xs font-bold text-slate-700 flex justify-between gap-4">Quality: <span className="text-slate-400 font-mono">{r.productRating.quality}/5</span></span>
+                        <span className="text-xs font-bold text-slate-700 flex justify-between gap-4">Taste: <span className="text-slate-400 font-mono">{r.productRating.taste}/5</span></span>
                       </div>
                     </td>
                     <td className="p-6">
                       {r.comment ? (
-                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-slate-600 italic leading-relaxed text-xs">
-                          "{r.comment}"
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-slate-600 leading-relaxed text-xs relative">
+                          <span className="absolute top-2 left-2 text-slate-200 text-4xl leading-none font-serif opacity-50">"</span>
+                          <p className="relative z-10 pl-2">{r.comment}</p>
                         </div>
                       ) : (
                         <span className="text-slate-200 text-xs font-bold uppercase italic">No comment provided</span>

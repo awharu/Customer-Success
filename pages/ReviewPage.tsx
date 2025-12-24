@@ -1,12 +1,13 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/db';
 import StarRating from '../components/StarRating';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowRight, ArrowLeft, Package, Truck, MessageSquare } from 'lucide-react';
 import { ProductRating, DeliveryRating } from '../types';
 
 type State = {
   status: 'validating' | 'invalid' | 'used' | 'form' | 'submitting' | 'success';
+  step: number;
   productRatings: ProductRating;
   deliveryRatings: DeliveryRating;
   comment: string;
@@ -16,6 +17,8 @@ type Action =
   | { type: 'VALIDATE_SUCCESS' }
   | { type: 'VALIDATE_FAIL_INVALID' }
   | { type: 'VALIDATE_FAIL_USED' }
+  | { type: 'NEXT_STEP' }
+  | { type: 'PREV_STEP' }
   | { type: 'SUBMIT' }
   | { type: 'SUBMIT_SUCCESS' }
   | { type: 'UPDATE_PRODUCT_RATING'; payload: Partial<ProductRating> }
@@ -24,6 +27,7 @@ type Action =
 
 const initialState: State = {
   status: 'validating',
+  step: 1,
   productRatings: { quality: 0, effects: 0, taste: 0, appearance: 0 },
   deliveryRatings: { speed: 0, communication: 0, overall: 0 },
   comment: '',
@@ -37,6 +41,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, status: 'invalid' };
     case 'VALIDATE_FAIL_USED':
       return { ...state, status: 'used' };
+    case 'NEXT_STEP':
+      return { ...state, step: Math.min(state.step + 1, 3) };
+    case 'PREV_STEP':
+      return { ...state, step: Math.max(state.step - 1, 1) };
     case 'SUBMIT':
       return { ...state, status: 'submitting' };
     case 'SUBMIT_SUCCESS':
@@ -56,7 +64,7 @@ const ReviewPage: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { status, productRatings, deliveryRatings, comment } = state;
+  const { status, step, productRatings, deliveryRatings, comment } = state;
 
   useEffect(() => {
     if (code) {
@@ -73,8 +81,7 @@ const ReviewPage: React.FC = () => {
     }
   }, [code]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (!code || status !== 'form') return;
     dispatch({ type: 'SUBMIT' });
 
@@ -89,30 +96,29 @@ const ReviewPage: React.FC = () => {
     }, 800);
   };
 
-  // FIX: Operator '>' cannot be applied to types 'unknown' and 'number'.
-  // Explicitly convert values to numbers before comparison.
-  // Object.values() can return `unknown[]` in some TypeScript configurations,
-  // so `v` must be cast to a number to be used in a comparison.
-  const isFormComplete =
-    Object.values(productRatings).every(v => Number(v) > 0) &&
-    Object.values(deliveryRatings).every(v => Number(v) > 0);
+  const isStep1Complete = Object.values(productRatings).every(v => Number(v) > 0);
+  const isStep2Complete = Object.values(deliveryRatings).every(v => Number(v) > 0);
 
   if (status === 'validating') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
         <Loader2 className="animate-spin text-teal-600 mb-2" size={32} />
-        <span className="text-slate-500 font-medium">Verifying code...</span>
+        <span className="text-slate-500 font-medium">Verifying secure link...</span>
       </div>
     );
   }
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
-        <XCircle className="text-red-500 mb-4" size={64} />
-        <h1 className="text-2xl font-bold text-slate-800">Access Denied</h1>
-        <p className="text-slate-600 mt-2 max-w-xs">The review link is invalid or has expired. Please contact support if you believe this is an error.</p>
-        <button onClick={() => navigate('/')} className="mt-8 bg-white border border-slate-200 px-6 py-2 rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition-colors shadow-sm">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+        <div className="bg-red-100 p-6 rounded-full mb-6">
+            <XCircle className="text-red-500" size={48} />
+        </div>
+        <h1 className="text-2xl font-black text-slate-800 mb-2">Link Expired</h1>
+        <p className="text-slate-500 max-w-xs leading-relaxed">
+          This review link is either invalid or has already been processed.
+        </p>
+        <button onClick={() => navigate('/')} className="mt-8 text-sm font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">
           Return Home
         </button>
       </div>
@@ -121,58 +127,152 @@ const ReviewPage: React.FC = () => {
 
   if (status === 'used' || status === 'success') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
-        <div className="bg-teal-100 p-4 rounded-full mb-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center animate-in fade-in duration-700">
+        <div className="bg-teal-100 p-6 rounded-full mb-6 shadow-xl shadow-teal-100">
           <CheckCircle className="text-teal-600" size={48} />
         </div>
-        <h1 className="text-3xl font-bold text-slate-800">Feedback Received</h1>
-        <p className="text-slate-600 mt-2">Thank you for helping us improve our pharmacy services.</p>
-        <button onClick={() => navigate('/')} className="mt-8 bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20">
-          View Quality Metrics
+        <h1 className="text-3xl font-black text-slate-800 mb-2">Review Submitted</h1>
+        <p className="text-slate-500 max-w-sm leading-relaxed mb-8">
+          Your feedback has been securely encrypted and anonymously added to our quality metrics.
+        </p>
+        <button 
+            onClick={() => navigate('/')} 
+            className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl active:scale-95"
+        >
+          See Live Metrics
         </button>
       </div>
     );
   }
 
+  const renderProgressBar = () => (
+    <div className="mb-8">
+      <div className="flex justify-between mb-2 px-1">
+        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${step >= 1 ? 'text-teal-600' : 'text-slate-300'}`}>Product</span>
+        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${step >= 2 ? 'text-teal-600' : 'text-slate-300'}`}>Delivery</span>
+        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${step >= 3 ? 'text-teal-600' : 'text-slate-300'}`}>Comment</span>
+      </div>
+      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div 
+            className="h-full bg-teal-600 transition-all duration-500 ease-out rounded-full"
+            style={{ width: `${(step / 3) * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-        <div className="bg-teal-600 p-8 text-white">
-          <h1 className="text-2xl font-bold">Delivery Review</h1>
-          <p className="opacity-90 mt-1">Your feedback is 100% anonymous and secure.</p>
+    <div className="min-h-screen bg-slate-50 py-8 px-4 flex items-center justify-center">
+      <div className="max-w-xl w-full bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col min-h-[600px]">
+        {/* Header */}
+        <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+                <Package size={120} />
+            </div>
+            <h1 className="text-2xl font-black relative z-10">Anonymous Review</h1>
+            <p className="text-slate-400 text-sm font-medium mt-1 relative z-10">Help us improve safely and securely.</p>
         </div>
-        <form onSubmit={handleSubmit} className="p-8">
-          <div className="mb-10">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><span className="w-8 h-px bg-slate-200"></span> Product Evaluation</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-              <StarRating label="Quality" value={productRatings.quality} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { quality: v } })} />
-              <StarRating label="Effects" value={productRatings.effects} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { effects: v } })} />
-              <StarRating label="Taste" value={productRatings.taste} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { taste: v } })} />
-              <StarRating label="Appearance" value={productRatings.appearance} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { appearance: v } })} />
+
+        <div className="flex-1 p-8 flex flex-col">
+            {renderProgressBar()}
+
+            <div className="flex-1">
+                {/* Step 1: Product */}
+                {step === 1 && (
+                    <div className="animate-in slide-in-from-right-8 fade-in duration-300 space-y-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-teal-50 p-3 rounded-2xl text-teal-600">
+                                <Package size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-800">Product Quality</h2>
+                                <p className="text-xs text-slate-400">Rate the items you received</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-y-2">
+                            <StarRating size={32} label="Quality" value={productRatings.quality} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { quality: v } })} />
+                            <StarRating size={32} label="Effects" value={productRatings.effects} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { effects: v } })} />
+                            <StarRating size={32} label="Taste" value={productRatings.taste} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { taste: v } })} />
+                            <StarRating size={32} label="Appearance" value={productRatings.appearance} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { appearance: v } })} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 2: Delivery */}
+                {step === 2 && (
+                    <div className="animate-in slide-in-from-right-8 fade-in duration-300 space-y-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-blue-50 p-3 rounded-2xl text-blue-600">
+                                <Truck size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-800">Delivery Experience</h2>
+                                <p className="text-xs text-slate-400">Rate the logistics service</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-y-4">
+                            <StarRating size={32} label="Speed" value={deliveryRatings.speed} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { speed: v } })} />
+                            <StarRating size={32} label="Communication" value={deliveryRatings.communication} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { communication: v } })} />
+                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <StarRating size={32} label="Overall Satisfaction" value={deliveryRatings.overall} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { overall: v } })} />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 3: Comment */}
+                {step === 3 && (
+                    <div className="animate-in slide-in-from-right-8 fade-in duration-300 space-y-6">
+                         <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-amber-50 p-3 rounded-2xl text-amber-600">
+                                <MessageSquare size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-800">Final Thoughts</h2>
+                                <p className="text-xs text-slate-400">Optional feedback</p>
+                            </div>
+                        </div>
+                        <textarea
+                            className="w-full border-2 border-slate-100 rounded-2xl p-5 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-300 min-h-[160px] text-slate-700 resize-none font-medium"
+                            placeholder="Tell us more about your experience..."
+                            value={comment}
+                            onChange={(e) => dispatch({ type: 'UPDATE_COMMENT', payload: e.target.value })}
+                            autoFocus
+                        />
+                    </div>
+                )}
             </div>
-          </div>
-          <div className="mb-10">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><span className="w-8 h-px bg-slate-200"></span> Delivery Service</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-              <StarRating label="Speed" value={deliveryRatings.speed} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { speed: v } })} />
-              <StarRating label="Communication" value={deliveryRatings.communication} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { communication: v } })} />
-              <StarRating label="Overall Experience" value={deliveryRatings.overall} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { overall: v } })} />
+
+            {/* Actions */}
+            <div className="pt-8 mt-4 border-t border-slate-50 flex gap-4">
+                {step > 1 && (
+                    <button 
+                        onClick={() => dispatch({ type: 'PREV_STEP' })}
+                        className="px-6 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                )}
+                
+                {step < 3 ? (
+                    <button 
+                        onClick={() => dispatch({ type: 'NEXT_STEP' })}
+                        disabled={(step === 1 && !isStep1Complete) || (step === 2 && !isStep2Complete)}
+                        className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-xl active:scale-[0.98]"
+                    >
+                        Next Step <ArrowRight size={20} />
+                    </button>
+                ) : (
+                    <button 
+                        onClick={handleSubmit}
+                        disabled={status === 'submitting'}
+                        className="flex-1 bg-teal-600 text-white py-4 rounded-2xl font-bold hover:bg-teal-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-teal-600/20 active:scale-[0.98]"
+                    >
+                        {status === 'submitting' ? <Loader2 className="animate-spin" size={20} /> : 'Submit Review'}
+                    </button>
+                )}
             </div>
-          </div>
-          <div className="mb-10">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><span className="w-8 h-px bg-slate-200"></span> Additional Comments</h2>
-            <textarea
-              className="w-full border border-slate-200 rounded-2xl p-4 focus:ring-2 focus:ring-teal-500 focus:outline-none transition-all placeholder:text-slate-300 min-h-[120px]"
-              placeholder="Tell us more about your experience (optional)..."
-              value={comment}
-              onChange={(e) => dispatch({ type: 'UPDATE_COMMENT', payload: e.target.value })}
-            />
-          </div>
-          <button type="submit" disabled={!isFormComplete || status === 'submitting'} className={`w-full py-4 rounded-2xl font-bold text-white transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 ${!isFormComplete || status === 'submitting' ? 'bg-slate-200 cursor-not-allowed text-slate-400' : 'bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/20'}`}>
-            {status === 'submitting' ? (<><Loader2 className="animate-spin" size={20} /> Processing...</>) : ('Submit Anonymous Review')}
-          </button>
-          {!isFormComplete && status !== 'submitting' && (<p className="text-xs text-center text-slate-400 mt-4">Please provide a rating for all categories to submit.</p>)}
-        </form>
+        </div>
       </div>
     </div>
   );

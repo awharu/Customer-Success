@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { db } from '../services/db';
-import { AggregatedMetrics } from '../types';
-import { Activity, Truck, Pill, ShieldCheck, ArrowRight, Star, Heart, Lock, CheckCircle2 } from 'lucide-react';
+import { AggregatedMetrics, Review } from '../types';
+import { Activity, Truck, Pill, ArrowRight, Star, Heart, Lock, CheckCircle2, MessageSquareQuote } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import MetricCard from '../components/metrics/MetricCard';
 import ProductProfileChart from '../components/metrics/ProductProfileChart';
 import DeliveryPerformanceChart from '../components/metrics/DeliveryPerformanceChart';
+import { Smartphone } from 'lucide-react';
 
 const PublicHome: React.FC = () => {
   const [metrics, setMetrics] = useState<AggregatedMetrics | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewCode, setReviewCode] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     setMetrics(db.getMetrics());
+    setReviews(db.getReviews());
   }, []);
 
   const handleCodeSubmit = (e: React.FormEvent) => {
@@ -22,6 +25,14 @@ const PublicHome: React.FC = () => {
       navigate(`/review/${reviewCode.trim().toUpperCase()}`);
     }
   };
+
+  // Filter for high quality comments for the public showcase
+  const recentFeedback = useMemo(() => {
+    return reviews
+      .filter(r => r.comment && r.comment.length > 10 && r.productRating.quality >= 4)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 3);
+  }, [reviews]);
 
   if (!metrics) {
     return (
@@ -48,7 +59,6 @@ const PublicHome: React.FC = () => {
           <div className="hidden md:flex items-center gap-8">
             <a href="#how-it-works" className="text-sm font-medium text-slate-500 hover:text-teal-600 transition-colors">How it works</a>
             <a href="#metrics" className="text-sm font-medium text-slate-500 hover:text-teal-600 transition-colors">Live Stats</a>
-            <Link to="/admin" className="text-sm font-bold text-teal-600 bg-teal-50 px-4 py-2 rounded-full hover:bg-teal-100 transition-all">Admin Panel</Link>
           </div>
         </div>
       </nav>
@@ -110,6 +120,38 @@ const PublicHome: React.FC = () => {
           </button>
         </form>
       </div>
+
+      {/* Recent Positive Feedback */}
+      {recentFeedback.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 pt-24">
+            <div className="text-center mb-12">
+                <h2 className="text-xs font-black text-teal-600 uppercase tracking-widest mb-2">Community Voices</h2>
+                <h3 className="text-3xl font-bold text-slate-800">Recent Verified Feedback</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {recentFeedback.map((review) => (
+                    <div key={review.id} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative group hover:shadow-lg transition-shadow">
+                        <MessageSquareQuote size={40} className="text-teal-100 absolute top-6 right-6" />
+                        <div className="flex gap-1 mb-4">
+                            {[...Array(5)].map((_, i) => (
+                                <Star key={i} size={16} className={i < review.productRating.quality ? "fill-amber-400 text-amber-400" : "text-slate-200"} />
+                            ))}
+                        </div>
+                        <p className="text-slate-600 leading-relaxed font-medium mb-4">"{review.comment}"</p>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black text-xs">
+                                {review.id.substring(0, 2)}
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-800 uppercase tracking-wide">Anonymous Patient</p>
+                                <p className="text-[10px] text-slate-400">Verified Delivery</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </section>
+      )}
 
       {/* How it Works */}
       <section id="how-it-works" className="max-w-7xl mx-auto px-6 py-24">
@@ -212,8 +254,5 @@ const PublicHome: React.FC = () => {
     </div>
   );
 };
-
-// Re-using Smartphone from lucide-react (imported at top)
-import { Smartphone } from 'lucide-react';
 
 export default PublicHome;
