@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-// Fix: Added missing RefreshCw import from lucide-react
 import { Save, ShieldAlert, Key, MessageSquareCode, Info, RefreshCw } from 'lucide-react';
 import { useToast } from '../ui/ToastProvider';
 
@@ -27,17 +25,17 @@ const SettingsManager: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-        <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
-            <h3 className="text-2xl font-black text-slate-800 mb-2">System Config</h3>
+        <div className="bg-[#1A1025]/60 backdrop-blur-md p-10 rounded-[2.5rem] shadow-xl border border-white/5">
+            <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-wide">System Config</h3>
             <p className="text-slate-400 font-medium text-sm mb-10">Configure your SMS gateway and outbound communications.</p>
             
-            <div className="bg-rose-50 border border-rose-100 p-6 rounded-3xl mb-10 flex items-start gap-4">
-                <div className="bg-rose-600 p-2 rounded-xl">
-                    <ShieldAlert className="text-white" size={20} />
+            <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl mb-10 flex items-start gap-4 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
+                <div className="bg-red-500 p-2 rounded-xl">
+                    <ShieldAlert className="text-[#0B0415]" size={20} />
                 </div>
                 <div>
-                    <h4 className="font-black text-sm text-rose-900">Security Requirement</h4>
-                    <p className="text-xs leading-relaxed text-rose-700 mt-1 font-medium">
+                    <h4 className="font-black text-sm text-red-400 uppercase tracking-wide">Security Requirement</h4>
+                    <p className="text-xs leading-relaxed text-red-300 mt-1 font-medium">
                         Credentials are currently stored in the browser's local sandbox. For enterprise deployments, use a dedicated server-side secrets manager.
                     </p>
                 </div>
@@ -53,7 +51,7 @@ const SettingsManager: React.FC = () => {
                             id="hero-username"
                             type="text"
                             placeholder="Provider ID"
-                            className="w-full border-2 border-slate-50 rounded-2xl p-4 font-bold focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                            className="w-full bg-[#0B0415] border border-white/10 rounded-2xl p-4 font-bold text-white focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 outline-none transition-all placeholder:text-slate-700"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
@@ -66,7 +64,7 @@ const SettingsManager: React.FC = () => {
                             id="hero-password"
                             type="password"
                             placeholder="••••••••"
-                            className="w-full border-2 border-slate-50 rounded-2xl p-4 font-bold focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                            className="w-full bg-[#0B0415] border border-white/10 rounded-2xl p-4 font-bold text-white focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 outline-none transition-all placeholder:text-slate-700"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
@@ -79,14 +77,14 @@ const SettingsManager: React.FC = () => {
                     </label>
                     <textarea
                         id="sms-template"
-                        className="w-full border-2 border-slate-50 rounded-2xl p-4 font-bold focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all min-h-[140px] resize-none leading-relaxed"
+                        className="w-full bg-[#0B0415] border border-white/10 rounded-2xl p-4 font-bold text-white focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 outline-none transition-all min-h-[140px] resize-none leading-relaxed placeholder:text-slate-700"
                         value={smsTemplate}
                         onChange={(e) => setSmsTemplate(e.target.value)}
                     />
-                    <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-2 bg-white/5 p-3 rounded-xl border border-white/5">
                         <Info size={14} className="text-slate-400"/>
                         <p className="text-[10px] text-slate-400 font-bold">
-                            Placeholder: <code className="text-teal-600 bg-white px-1 rounded">{"{{reviewLink}}"}</code> will be auto-replaced.
+                            Placeholder: <code className="text-cyan-400 bg-cyan-900/30 px-1 rounded">{"{{reviewLink}}"}</code> will be auto-replaced.
                         </p>
                     </div>
                 </div>
@@ -95,7 +93,7 @@ const SettingsManager: React.FC = () => {
                     <button 
                         type="submit" 
                         disabled={isSaving}
-                        className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-slate-800 disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all"
+                        className="w-full bg-white text-black py-5 rounded-2xl font-black text-lg hover:bg-cyan-400 transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] uppercase tracking-wide"
                     >
                         {isSaving ? <RefreshCw className="animate-spin" size={20}/> : <Save size={20} />}
                         {isSaving ? 'Processing Changes...' : 'Save Configuration'}

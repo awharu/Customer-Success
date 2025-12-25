@@ -2,7 +2,7 @@ import React, { useEffect, useReducer } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/db';
 import StarRating from '../components/StarRating';
-import { CheckCircle, XCircle, Loader2, ArrowRight, ArrowLeft, Package, Truck, MessageSquare, Check, Zap } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowRight, ArrowLeft, Package, Truck, MessageSquare, Check, Zap, AlertTriangle } from 'lucide-react';
 import { ProductRating, DeliveryRating } from '../types';
 
 type State = {
@@ -68,7 +68,10 @@ const ReviewPage: React.FC = () => {
 
   useEffect(() => {
     if (code) {
-      const { valid, used } = db.validateCode(code);
+      // Normalize to uppercase to prevent case-sensitivity issues on mobile keyboards
+      const normalizedCode = code.toUpperCase();
+      const { valid, used } = db.validateCode(normalizedCode);
+      
       if (!valid) {
         dispatch({ type: 'VALIDATE_FAIL_INVALID' });
       } else if (used) {
@@ -87,7 +90,7 @@ const ReviewPage: React.FC = () => {
 
     setTimeout(() => {
       db.addReview({
-        code,
+        code: code.toUpperCase(),
         productRating: productRatings,
         deliveryRating: deliveryRatings,
         comment,
@@ -115,9 +118,20 @@ const ReviewPage: React.FC = () => {
             <XCircle className="text-red-500" size={48} />
         </div>
         <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-wide">Link Expired</h1>
-        <p className="text-slate-400 max-w-xs leading-relaxed mb-12">
+        <p className="text-slate-400 max-w-xs leading-relaxed mb-8">
           This review link is either invalid or has already been processed by the mainframe.
         </p>
+        
+        <div className="max-w-xs mx-auto bg-yellow-500/5 border border-yellow-500/10 p-4 rounded-xl mb-12 flex gap-3 text-left">
+          <AlertTriangle className="text-yellow-500 shrink-0" size={20} />
+          <div>
+            <p className="text-[10px] text-yellow-500 font-bold uppercase tracking-wide mb-1">Demo Environment</p>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              This demo uses Local Storage. If you opened this link on a different device than where it was generated, it will not work because the databases are not synced.
+            </p>
+          </div>
+        </div>
+
         <button onClick={() => navigate('/')} className="text-xs font-bold text-slate-500 hover:text-white uppercase tracking-widest border border-white/10 px-8 py-4 rounded-full hover:bg-white/5 transition-all">
           Return to Hub
         </button>
