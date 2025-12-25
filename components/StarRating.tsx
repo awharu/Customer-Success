@@ -20,22 +20,27 @@ const StarRating: React.FC<StarRatingProps> = ({
 
   return (
     <div className="flex flex-col mb-4">
-      {label && <span className="text-sm font-medium text-slate-700 mb-1">{label}</span>}
-      <div className="flex items-center gap-1">
+      {label && <span className="text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest">{label}</span>}
+      <div className="flex items-center gap-2">
         {stars.map((star) => (
           <button
             key={star}
             type="button"
             disabled={readonly}
             onClick={() => !readonly && onChange && onChange(star)}
-            className={`transition-colors duration-200 focus:outline-none ${
+            className={`transition-all duration-300 focus:outline-none ${
               readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
             }`}
           >
             <Star
               size={size}
-              fill={star <= value ? "#fbbf24" : "none"} // amber-400
-              className={star <= value ? "text-amber-400" : "text-slate-300"}
+              fill={star <= value ? "#FAFF00" : "none"} // Neon Yellow fill
+              className={`${
+                star <= value 
+                  ? "text-[#FAFF00] drop-shadow-[0_0_8px_rgba(250,255,0,0.6)]" 
+                  : "text-slate-700"
+              }`}
+              strokeWidth={1.5}
             />
           </button>
         ))}

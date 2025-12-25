@@ -2,7 +2,7 @@ import React, { useEffect, useReducer } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/db';
 import StarRating from '../components/StarRating';
-import { CheckCircle, XCircle, Loader2, ArrowRight, ArrowLeft, Package, Truck, MessageSquare, Check } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowRight, ArrowLeft, Package, Truck, MessageSquare, Check, Zap } from 'lucide-react';
 import { ProductRating, DeliveryRating } from '../types';
 
 type State = {
@@ -101,25 +101,25 @@ const ReviewPage: React.FC = () => {
 
   if (status === 'validating') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <Loader2 className="animate-spin text-teal-600 mb-2" size={32} />
-        <span className="text-slate-500 font-medium">Verifying secure link...</span>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0B0415]">
+        <Loader2 className="animate-spin text-cyan-400 mb-4" size={40} />
+        <span className="text-cyan-400 font-bold uppercase tracking-widest text-xs animate-pulse">Establishing Secure Uplink...</span>
       </div>
     );
   }
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
-        <div className="bg-red-100 p-6 rounded-full mb-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0B0415] p-6 text-center">
+        <div className="bg-red-500/10 p-8 rounded-full mb-8 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
             <XCircle className="text-red-500" size={48} />
         </div>
-        <h1 className="text-2xl font-black text-slate-800 mb-2">Link Expired</h1>
-        <p className="text-slate-500 max-w-xs leading-relaxed">
-          This review link is either invalid or has already been processed.
+        <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-wide">Link Expired</h1>
+        <p className="text-slate-400 max-w-xs leading-relaxed mb-12">
+          This review link is either invalid or has already been processed by the mainframe.
         </p>
-        <button onClick={() => navigate('/')} className="mt-8 text-sm font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">
-          Return Home
+        <button onClick={() => navigate('/')} className="text-xs font-bold text-slate-500 hover:text-white uppercase tracking-widest border border-white/10 px-8 py-4 rounded-full hover:bg-white/5 transition-all">
+          Return to Hub
         </button>
       </div>
     );
@@ -127,19 +127,19 @@ const ReviewPage: React.FC = () => {
 
   if (status === 'used' || status === 'success') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center animate-in fade-in duration-700">
-        <div className="bg-teal-100 p-6 rounded-full mb-6 shadow-xl shadow-teal-100">
-          <CheckCircle className="text-teal-600" size={48} />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0B0415] p-6 text-center animate-in fade-in duration-700">
+        <div className="bg-green-500/10 p-8 rounded-full mb-8 border border-green-500/20 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+          <CheckCircle className="text-green-400" size={64} />
         </div>
-        <h1 className="text-3xl font-black text-slate-800 mb-2">Review Submitted</h1>
-        <p className="text-slate-500 max-w-sm leading-relaxed mb-8">
-          Your feedback has been securely encrypted and anonymously added to our quality metrics.
+        <h1 className="text-4xl font-black text-white mb-4 uppercase tracking-tight">Transmission Complete</h1>
+        <p className="text-slate-400 max-w-sm leading-relaxed mb-12">
+          Your feedback has been encrypted and successfully committed to the anonymous ledger.
         </p>
         <button 
             onClick={() => navigate('/')} 
-            className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl active:scale-95"
+            className="bg-white text-[#0B0415] px-10 py-5 rounded-2xl font-black hover:bg-cyan-400 hover:text-black transition-all shadow-xl active:scale-95 uppercase tracking-wide"
         >
-          See Live Metrics
+          View Live Metrics
         </button>
       </div>
     );
@@ -149,9 +149,9 @@ const ReviewPage: React.FC = () => {
     <div className="relative mb-12 px-4">
         {/* Connecting Lines */}
         <div className="absolute top-5 left-0 w-full px-12 box-border">
-            <div className="w-full h-1 bg-slate-100 rounded-full">
+            <div className="w-full h-1 bg-white/10 rounded-full">
                  <div 
-                    className="h-full bg-teal-500 transition-all duration-700 ease-in-out rounded-full"
+                    className="h-full bg-cyan-400 shadow-[0_0_10px_#22d3ee] transition-all duration-700 ease-in-out rounded-full"
                     style={{ width: `${((step - 1) / 2) * 100}%` }}
                 />
             </div>
@@ -173,8 +173,8 @@ const ReviewPage: React.FC = () => {
                             className={`
                                 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500 ease-out
                                 ${isActive 
-                                    ? 'bg-teal-500 border-teal-500 text-white shadow-lg shadow-teal-500/30 scale-110' 
-                                    : 'bg-white border-slate-200 text-slate-300'
+                                    ? 'bg-[#0B0415] border-cyan-400 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-110' 
+                                    : 'bg-[#0B0415] border-white/10 text-slate-600'
                                 }
                             `}
                         >
@@ -183,7 +183,7 @@ const ReviewPage: React.FC = () => {
                         <span 
                             className={`
                                 text-[10px] font-black uppercase tracking-widest transition-all duration-500
-                                ${isActive ? 'text-teal-600 translate-y-0 opacity-100' : 'text-slate-300 translate-y-1 opacity-70'}
+                                ${isActive ? 'text-cyan-400 translate-y-0 opacity-100 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]' : 'text-slate-600 translate-y-1 opacity-50'}
                             `}
                         >
                             {s.label}
@@ -196,15 +196,18 @@ const ReviewPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 flex items-center justify-center">
-      <div className="max-w-xl w-full bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col min-h-[600px]">
+    <div className="min-h-screen bg-[#0B0415] py-8 px-4 flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#0B0415] to-[#0B0415]">
+      <div className="max-w-xl w-full bg-[#1A1025]/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-black/50 overflow-hidden border border-white/10 flex flex-col min-h-[650px]">
         {/* Header */}
-        <div className="bg-slate-900 p-8 text-white relative overflow-hidden shrink-0">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-                <Package size={120} />
+        <div className="bg-[#0f0518] p-8 text-white relative overflow-hidden shrink-0 border-b border-white/5">
+            <div className="absolute top-0 right-0 p-6 opacity-10">
+                <Zap size={100} />
             </div>
-            <h1 className="text-2xl font-black relative z-10">Anonymous Review</h1>
-            <p className="text-slate-400 text-sm font-medium mt-1 relative z-10">Help us improve safely and securely.</p>
+            <h1 className="text-2xl font-black relative z-10 uppercase tracking-wide flex items-center gap-3">
+                <span className="w-2 h-8 bg-cyan-400 rounded-full shadow-[0_0_10px_#22d3ee]"></span>
+                Anonymous Review
+            </h1>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2 relative z-10 pl-5">Encrypted Connection</p>
         </div>
 
         <div className="flex-1 p-8 flex flex-col">
@@ -214,17 +217,17 @@ const ReviewPage: React.FC = () => {
                 <div key={step} className="animate-in fade-in slide-in-from-right-8 duration-500 ease-out fill-mode-forwards">
                     {/* Step 1: Product */}
                     {step === 1 && (
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="bg-teal-50 p-3 rounded-2xl text-teal-600">
-                                    <Package size={24} />
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="bg-yellow-400/10 p-4 rounded-2xl text-yellow-400 border border-yellow-400/20 shadow-[0_0_15px_rgba(250,204,21,0.1)]">
+                                    <Package size={28} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-800">Product Quality</h2>
-                                    <p className="text-xs text-slate-400">Rate the items you received</p>
+                                    <h2 className="text-xl font-black text-white uppercase tracking-wide">Product Quality</h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Rate the items received</p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 gap-y-2">
+                            <div className="grid grid-cols-1 gap-y-4">
                                 <StarRating size={32} label="Quality" value={productRatings.quality} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { quality: v } })} />
                                 <StarRating size={32} label="Effects" value={productRatings.effects} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { effects: v } })} />
                                 <StarRating size={32} label="Taste" value={productRatings.taste} onChange={(v) => dispatch({ type: 'UPDATE_PRODUCT_RATING', payload: { taste: v } })} />
@@ -235,20 +238,20 @@ const ReviewPage: React.FC = () => {
 
                     {/* Step 2: Delivery */}
                     {step === 2 && (
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="bg-blue-50 p-3 rounded-2xl text-blue-600">
-                                    <Truck size={24} />
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="bg-blue-400/10 p-4 rounded-2xl text-blue-400 border border-blue-400/20 shadow-[0_0_15px_rgba(96,165,250,0.1)]">
+                                    <Truck size={28} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-800">Delivery Experience</h2>
-                                    <p className="text-xs text-slate-400">Rate the logistics service</p>
+                                    <h2 className="text-xl font-black text-white uppercase tracking-wide">Logistics</h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Rate the delivery service</p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 gap-y-4">
+                            <div className="grid grid-cols-1 gap-y-6">
                                 <StarRating size={32} label="Speed" value={deliveryRatings.speed} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { speed: v } })} />
                                 <StarRating size={32} label="Communication" value={deliveryRatings.communication} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { communication: v } })} />
-                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
                                     <StarRating size={32} label="Overall Satisfaction" value={deliveryRatings.overall} onChange={(v) => dispatch({ type: 'UPDATE_DELIVERY_RATING', payload: { overall: v } })} />
                                 </div>
                             </div>
@@ -257,19 +260,19 @@ const ReviewPage: React.FC = () => {
 
                     {/* Step 3: Comment */}
                     {step === 3 && (
-                        <div className="space-y-6">
-                             <div className="flex items-center gap-3 mb-6">
-                                <div className="bg-amber-50 p-3 rounded-2xl text-amber-600">
-                                    <MessageSquare size={24} />
+                        <div className="space-y-8">
+                             <div className="flex items-center gap-4 mb-8">
+                                <div className="bg-purple-400/10 p-4 rounded-2xl text-purple-400 border border-purple-400/20 shadow-[0_0_15px_rgba(192,132,252,0.1)]">
+                                    <MessageSquare size={28} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-800">Final Thoughts</h2>
-                                    <p className="text-xs text-slate-400">Optional feedback</p>
+                                    <h2 className="text-xl font-black text-white uppercase tracking-wide">Final Thoughts</h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Encrypted Comment Channel</p>
                                 </div>
                             </div>
                             <textarea
-                                className="w-full border-2 border-slate-100 rounded-2xl p-5 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-300 min-h-[160px] text-slate-700 resize-none font-medium"
-                                placeholder="Tell us more about your experience..."
+                                className="w-full bg-[#0B0415] border border-white/10 rounded-2xl p-6 focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 focus:outline-none transition-all placeholder:text-slate-600 min-h-[200px] text-white resize-none font-medium leading-relaxed"
+                                placeholder="Share your experience (Optional)..."
                                 value={comment}
                                 onChange={(e) => dispatch({ type: 'UPDATE_COMMENT', payload: e.target.value })}
                                 autoFocus
@@ -280,11 +283,11 @@ const ReviewPage: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="pt-8 mt-4 border-t border-slate-50 flex gap-4 shrink-0">
+            <div className="pt-8 mt-4 border-t border-white/5 flex gap-4 shrink-0">
                 {step > 1 && (
                     <button 
                         onClick={() => dispatch({ type: 'PREV_STEP' })}
-                        className="px-6 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                        className="px-6 py-4 rounded-2xl font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
                     >
                         <ArrowLeft size={24} />
                     </button>
@@ -294,15 +297,15 @@ const ReviewPage: React.FC = () => {
                     <button 
                         onClick={() => dispatch({ type: 'NEXT_STEP' })}
                         disabled={(step === 1 && !isStep1Complete) || (step === 2 && !isStep2Complete)}
-                        className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-xl active:scale-[0.98]"
+                        className="flex-1 bg-white text-black py-4 rounded-2xl font-black hover:bg-cyan-400 transition-all disabled:bg-white/10 disabled:text-slate-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] uppercase tracking-wide"
                     >
-                        Next Step <ArrowRight size={20} />
+                        Next Step <ArrowRight size={20} strokeWidth={3} />
                     </button>
                 ) : (
                     <button 
                         onClick={handleSubmit}
                         disabled={status === 'submitting'}
-                        className="flex-1 bg-teal-600 text-white py-4 rounded-2xl font-bold hover:bg-teal-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-teal-600/20 active:scale-[0.98]"
+                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-2xl font-black hover:from-green-400 hover:to-emerald-500 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(34,197,94,0.3)] active:scale-[0.98] uppercase tracking-wide"
                     >
                         {status === 'submitting' ? <Loader2 className="animate-spin" size={20} /> : 'Submit Review'}
                     </button>

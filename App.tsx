@@ -1,4 +1,3 @@
-
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import PublicHome from './pages/PublicHome';
@@ -16,13 +15,14 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-// Fix: Explicitly extending React.Component and destructuring props/state in render 
-// to resolve TypeScript error where 'props' was not correctly recognized on the instance.
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  public state: ErrorBoundaryState = {
-    hasError: false,
-    error: null,
-  };
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+    };
+  }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
@@ -33,7 +33,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render() {
-    // Destructure to ensure explicit access to state and props
     const { hasError, error } = this.state;
     const { children } = this.props;
 

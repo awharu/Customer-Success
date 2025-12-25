@@ -15,25 +15,24 @@ const AverageProductRatingsChart: React.FC<ChartProps> = ({ data }) => {
   ];
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-      <h3 className="text-lg font-bold text-slate-800 mb-6">Average Product Scores</h3>
+    <div className="bg-[#1A1025]/60 backdrop-blur-md p-6 rounded-2xl border border-white/5 shadow-xl">
+      <h3 className="text-lg font-black text-white mb-6 uppercase tracking-widest">Average Product Scores</h3>
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis domain={[0, 5]} tick={{ fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} />
+            <YAxis domain={[0, 5]} tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <Tooltip
-              cursor={{ fill: 'rgba(20, 184, 172, 0.1)' }}
+              cursor={{ fill: 'rgba(34, 211, 238, 0.05)' }}
               contentStyle={{
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(4px)',
-                border: '1px solid #e2e8f0',
-                borderRadius: '0.75rem',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                backgroundColor: '#0f0518',
+                borderColor: '#334155',
+                color: '#fff',
+                borderRadius: '12px',
               }}
             />
-            <Bar dataKey="score" fill="#14b8a6" radius={[4, 4, 0, 0]} barSize={30} />
+            <Bar dataKey="score" fill="#22d3ee" radius={[4, 4, 0, 0]} barSize={30} />
           </BarChart>
         </ResponsiveContainer>
       </div>
